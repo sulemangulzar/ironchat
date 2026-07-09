@@ -118,7 +118,17 @@ cd frontend
 npm install
 ```
 
-### 3. Start the frontend development server
+### 3. Create a frontend `.env` file
+
+Create a file named `.env` inside the `frontend` folder:
+
+```env
+VITE_API_URL=http://localhost:8001
+```
+
+This tells the React app where your FastAPI backend is running.
+
+### 4. Start the frontend development server
 
 ```bash
 npm run dev
@@ -133,7 +143,7 @@ http://localhost:5173
 ## How It Works
 
 1. The user types a message in the IronChat frontend.
-2. The frontend sends the message to the backend using `POST http://localhost:8001/chat`.
+2. The frontend sends the message to the backend using `POST ${VITE_API_URL}/chat`.
 3. FastAPI receives the message and sends it to Groq.
 4. Groq returns an AI response.
 5. The backend sends the reply back to the frontend.
@@ -180,7 +190,8 @@ uvicorn main:app --reload --port 8001
 
 - Do not commit your `.env` file or API keys.
 - Make sure the backend is running before sending messages from the frontend.
-- The frontend expects the backend to run on port `8001`.
+- The frontend reads the backend URL from `frontend/.env` using `VITE_API_URL`.
+- If `VITE_API_URL` is not set, the frontend falls back to `http://localhost:8001`.
 
 ## License
 
