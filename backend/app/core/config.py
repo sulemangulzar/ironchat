@@ -7,16 +7,16 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     GROQ_API_KEY: str
     ALLOWED_ORIGINS: str = "http://localhost:5173,https://ironchat-three.vercel.app"
-    REDIS_URL: str = "memory://"
+    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/ironchat"
 
     @property
-    def redis_url(self) -> str:
-        redis_url = self.REDIS_URL.strip().strip('"').strip("'")
+    def database_url(self) -> str:
+        database_url = self.DATABASE_URL.strip().strip('"').strip("'")
 
-        if redis_url == "memory://" or redis_url.startswith(("redis://", "rediss://", "unix://")):
-            return redis_url
+        if database_url.startswith("postgres://"):
+            return database_url.replace("postgres://", "postgresql://", 1)
 
-        return f"redis://{redis_url}"
+        return database_url
 
     @property
     def allowed_origins(self) -> list[str]:

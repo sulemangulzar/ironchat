@@ -26,6 +26,9 @@ IronChat is a simple full-stack AI chatbot built with a React frontend and a Fas
 - FastAPI
 - Groq SDK
 - Pydantic settings
+- SQLModel
+- Alembic
+- Neon/PostgreSQL
 - Uvicorn
 
 ## Project Structure
@@ -36,6 +39,8 @@ IronChat/
 │   ├── app/
 │   │   ├── api/routes/chat.py
 │   │   ├── core/config.py
+│   │   ├── db/database.py
+│   │   ├── db/models.py
 │   │   └── schemas/chat.py
 │   ├── main.py
 │   ├── pyproject.toml
@@ -76,25 +81,28 @@ Create a file named `.env` inside the `backend` folder:
 
 ```env
 GROQ_API_KEY=your_groq_api_key_here
-REDIS_URL=memory://
+DATABASE_URL=postgresql://user:password@host/database?sslmode=require
 ALLOWED_ORIGINS=http://localhost:5173
 ```
 
 You can get a Groq API key from the Groq Console.
 
-For a free/simple deployment, you can use in-memory chat history:
+You can get `DATABASE_URL` from Neon. Use the pooled or direct PostgreSQL connection string. It usually looks like this:
 
 ```env
-REDIS_URL=memory://
+DATABASE_URL=postgresql://user:password@host/database?sslmode=require
 ```
 
-This does not require a Redis database, but chat history resets when the server restarts or redeploys.
-
-For production, set `REDIS_URL` to your Redis database URL and set `ALLOWED_ORIGINS` to your frontend URL. You can also add multiple frontend URLs separated by commas:
+For deployment, set `ALLOWED_ORIGINS` to your frontend URL. You can also add multiple frontend URLs separated by commas:
 
 ```env
-REDIS_URL=redis://your-redis-host:6379
 ALLOWED_ORIGINS=http://localhost:5173,https://your-frontend-domain.com
+```
+
+On Render, use this backend start command so Neon tables are created before the API starts:
+
+```bash
+alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port $PORT
 ```
 
 ### 3. Install backend dependencies
@@ -107,7 +115,13 @@ uv sync
 
 If you prefer `pip`, create a virtual environment first, then install dependencies from `pyproject.toml`.
 
-### 4. Start the backend server
+### 4. Run database migrations
+
+```bash
+alembic upgrade head
+```
+
+### 5. Start the backend server
 
 ```bash
 uvicorn main:app --reload --port 8001
@@ -161,10 +175,11 @@ http://localhost:5173
 
 1. The user types a message in the IronChat frontend.
 2. The frontend sends the message to the backend using `POST ${VITE_API_URL}/chat`.
-3. FastAPI receives the message and sends it to Groq.
-4. Groq returns an AI response.
-5. The backend sends the reply back to the frontend.
-6. The frontend displays the reply in the chat window.
+3. FastAPI saves the user message in Neon/PostgreSQL using raw SQL queries.
+4. FastAPI loads recent session history and sends it to Groq.
+5. Groq returns an AI response.
+6. The backend stores the assistant reply in Neon/PostgreSQL.
+7. The frontend displays the reply in the chat window.
 
 ## API Endpoint
 
@@ -201,6 +216,7 @@ npm run preview
 ### Backend
 
 ```bash
+alembic upgrade head
 uvicorn main:app --reload --port 8001
 ```
 
@@ -208,8 +224,8 @@ uvicorn main:app --reload --port 8001
 
 - Do not commit your `.env` file or API keys.
 - Make sure the backend is running before sending messages from the frontend.
-- For a free demo, set `REDIS_URL=memory://`.
-- For persistent chat history on Render, `REDIS_URL` should normally start with `redis://` or `rediss://`.
+- Set `DATABASE_URL` to your Neon PostgreSQL connection string.
+- Run `alembic upgrade head` before starting the backend after adding a fresh database.
 - The frontend reads the backend URL from `frontend/.env` using `VITE_API_URL`.
 - If `VITE_API_URL` is not set, the frontend falls back to `http://localhost:8001`.
 
