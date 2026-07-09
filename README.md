@@ -76,9 +76,16 @@ Create a file named `.env` inside the `backend` folder:
 
 ```env
 GROQ_API_KEY=your_groq_api_key_here
+ALLOWED_ORIGINS=http://localhost:5173
 ```
 
 You can get a Groq API key from the Groq Console.
+
+For deployment, set `ALLOWED_ORIGINS` to your frontend URL. You can also add multiple URLs separated by commas:
+
+```env
+ALLOWED_ORIGINS=http://localhost:5173,https://your-frontend-domain.com
+```
 
 ### 3. Install backend dependencies
 
