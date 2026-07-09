@@ -99,11 +99,21 @@ For deployment, set `ALLOWED_ORIGINS` to your frontend URL. You can also add mul
 ALLOWED_ORIGINS=http://localhost:5173,https://your-frontend-domain.com
 ```
 
-On Render, use this backend start command so Neon tables are created before the API starts:
+On Render, set your backend environment variables first:
+
+```env
+GROQ_API_KEY=your_groq_key
+DATABASE_URL=your_neon_postgresql_url
+ALLOWED_ORIGINS=https://ironchat-three.vercel.app
+```
+
+Then use this backend start command so Neon tables are created before the API starts:
 
 ```bash
 alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port $PORT
 ```
+
+If Render logs show only `uvicorn main:app ...`, your Start Command has not been updated yet.
 
 ### 3. Install backend dependencies
 

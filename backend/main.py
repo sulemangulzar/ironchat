@@ -5,12 +5,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.chat import router as chat_router
 from app.core.config import settings
-from app.db.database import close_pool, get_pool
+from app.db.database import close_pool
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await get_pool()
     yield
     await close_pool()
 

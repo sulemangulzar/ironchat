@@ -1,5 +1,6 @@
 import json
 from json import JSONDecodeError
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -7,16 +8,32 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     GROQ_API_KEY: str
     ALLOWED_ORIGINS: str = "http://localhost:5173,https://ironchat-three.vercel.app"
-    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/ironchat"
+    DATABASE_URL: str = ""
 
     @property
     def database_url(self) -> str:
         database_url = self.DATABASE_URL.strip().strip('"').strip("'")
 
-        if database_url.startswith("postgres://"):
-            return database_url.replace("postgres://", "postgresql://", 1)
+        if not database_url:
+            raise RuntimeError("DATABASE_URL is not set. Add your Neon PostgreSQL URL in Render environment variables.")
 
-        return database_url
+        if database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+        parts = urlsplit(database_url)
+        query_params = [
+            (key, value)
+            for key, value in parse_qsl(parts.query, keep_blank_values=True)
+            if key != "channel_binding"
+        ]
+
+        return urlunsplit((
+            parts.scheme,
+            parts.netloc,
+            parts.path,
+            urlencode(query_params),
+            parts.fragment,
+        ))
 
     @property
     def allowed_origins(self) -> list[str]:
