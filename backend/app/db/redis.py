@@ -1,3 +1,3 @@
 import redis.asyncio as redis
 from app.core.config import settings
-redis_db = redis.from_url(settings.REDIS_URL, decode_responses=True)
+redis_db = redis.from_url(settings.redis_url, decode_responses=True)

@@ -85,7 +85,7 @@ You can get a Groq API key from the Groq Console.
 For deployment, set `REDIS_URL` to your Redis database URL and set `ALLOWED_ORIGINS` to your frontend URL. You can also add multiple frontend URLs separated by commas:
 
 ```env
-REDIS_URL=your_render_redis_url
+REDIS_URL=redis://your-redis-host:6379
 ALLOWED_ORIGINS=http://localhost:5173,https://your-frontend-domain.com
 ```
 
@@ -200,6 +200,7 @@ uvicorn main:app --reload --port 8001
 
 - Do not commit your `.env` file or API keys.
 - Make sure the backend is running before sending messages from the frontend.
+- On Render, `REDIS_URL` should normally start with `redis://` or `rediss://`.
 - The frontend reads the backend URL from `frontend/.env` using `VITE_API_URL`.
 - If `VITE_API_URL` is not set, the frontend falls back to `http://localhost:8001`.
 
