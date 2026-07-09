@@ -7,6 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     GROQ_API_KEY: str
     ALLOWED_ORIGINS: str = "http://localhost:5173,https://ironchat-three.vercel.app"
+    REDIS_URL : str
 
     @property
     def allowed_origins(self) -> list[str]:
