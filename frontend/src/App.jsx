@@ -9,6 +9,17 @@ function App() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId] = useState(() => {
+    const savedSessionId = localStorage.getItem('ironchat_session_id');
+
+    if (savedSessionId) {
+      return savedSessionId;
+    }
+
+    const newSessionId = globalThis.crypto?.randomUUID?.() || `session-${Date.now()}`;
+    localStorage.setItem('ironchat_session_id', newSessionId);
+    return newSessionId;
+  });
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -24,10 +35,14 @@ function App() {
       const response = await fetch(`${apiUrl}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userText }),
+        body: JSON.stringify({ session_id: sessionId, message: userText }),
       });
 
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Something went wrong on the backend.');
+      }
 
       if (data.reply) {
         setMessages([...newMessages, { role: 'assistant', content: data.reply }]);
@@ -38,10 +53,10 @@ function App() {
         ]);
       }
     } catch (error) {
-      console.error('Network Error:', error);
+      console.error('Chat Error:', error);
       setMessages([
         ...newMessages,
-        { role: 'assistant', content: 'I cannot reach the server right now. Please check the backend.' },
+        { role: 'assistant', content: error.message || 'I cannot reach the server right now. Please check the backend.' },
       ]);
     } finally {
       setIsLoading(false);

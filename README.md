@@ -76,14 +76,16 @@ Create a file named `.env` inside the `backend` folder:
 
 ```env
 GROQ_API_KEY=your_groq_api_key_here
+REDIS_URL=redis://localhost:6379
 ALLOWED_ORIGINS=http://localhost:5173
 ```
 
 You can get a Groq API key from the Groq Console.
 
-For deployment, set `ALLOWED_ORIGINS` to your frontend URL. You can also add multiple URLs separated by commas:
+For deployment, set `REDIS_URL` to your Redis database URL and set `ALLOWED_ORIGINS` to your frontend URL. You can also add multiple frontend URLs separated by commas:
 
 ```env
+REDIS_URL=your_render_redis_url
 ALLOWED_ORIGINS=http://localhost:5173,https://your-frontend-domain.com
 ```
 
@@ -164,6 +166,7 @@ Request body:
 
 ```json
 {
+  "session_id": "unique-user-session-id",
   "message": "Hello IronChat!"
 }
 ```
