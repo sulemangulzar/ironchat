@@ -20,6 +20,9 @@ class Settings(BaseSettings):
         if database_url.startswith("postgres://"):
             database_url = database_url.replace("postgres://", "postgresql://", 1)
 
+        if database_url.startswith("postgresql+"):
+            database_url = "postgresql://" + database_url.split("://", 1)[1]
+
         parts = urlsplit(database_url)
         query_params = [
             (key, value)
