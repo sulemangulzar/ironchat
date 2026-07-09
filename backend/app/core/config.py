@@ -7,13 +7,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     GROQ_API_KEY: str
     ALLOWED_ORIGINS: str = "http://localhost:5173,https://ironchat-three.vercel.app"
-    REDIS_URL: str = "redis://localhost:6379"
+    REDIS_URL: str = "memory://"
 
     @property
     def redis_url(self) -> str:
         redis_url = self.REDIS_URL.strip().strip('"').strip("'")
 
-        if redis_url.startswith(("redis://", "rediss://", "unix://")):
+        if redis_url == "memory://" or redis_url.startswith(("redis://", "rediss://", "unix://")):
             return redis_url
 
         return f"redis://{redis_url}"

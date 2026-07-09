@@ -76,13 +76,21 @@ Create a file named `.env` inside the `backend` folder:
 
 ```env
 GROQ_API_KEY=your_groq_api_key_here
-REDIS_URL=redis://localhost:6379
+REDIS_URL=memory://
 ALLOWED_ORIGINS=http://localhost:5173
 ```
 
 You can get a Groq API key from the Groq Console.
 
-For deployment, set `REDIS_URL` to your Redis database URL and set `ALLOWED_ORIGINS` to your frontend URL. You can also add multiple frontend URLs separated by commas:
+For a free/simple deployment, you can use in-memory chat history:
+
+```env
+REDIS_URL=memory://
+```
+
+This does not require a Redis database, but chat history resets when the server restarts or redeploys.
+
+For production, set `REDIS_URL` to your Redis database URL and set `ALLOWED_ORIGINS` to your frontend URL. You can also add multiple frontend URLs separated by commas:
 
 ```env
 REDIS_URL=redis://your-redis-host:6379
@@ -200,7 +208,8 @@ uvicorn main:app --reload --port 8001
 
 - Do not commit your `.env` file or API keys.
 - Make sure the backend is running before sending messages from the frontend.
-- On Render, `REDIS_URL` should normally start with `redis://` or `rediss://`.
+- For a free demo, set `REDIS_URL=memory://`.
+- For persistent chat history on Render, `REDIS_URL` should normally start with `redis://` or `rediss://`.
 - The frontend reads the backend URL from `frontend/.env` using `VITE_API_URL`.
 - If `VITE_API_URL` is not set, the frontend falls back to `http://localhost:8001`.
 
