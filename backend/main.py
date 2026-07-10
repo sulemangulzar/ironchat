@@ -4,21 +4,22 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.chat import router as chat_router
+from app.api.routes.auth import router as auth_router
 from app.core.config import settings
-from app.db.database import close_pool
+from app.db.database import engine
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     yield
-    await close_pool()
+    await engine.dispose()
 
 
 app = FastAPI(title="IronChat", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,3 +32,4 @@ async def health():
 
 
 app.include_router(chat_router)
+app.include_router(auth_router)
