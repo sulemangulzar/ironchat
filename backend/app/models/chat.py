@@ -1,3 +1,4 @@
+from typing import Optional
 from enum import Enum
 from typing import List
 from datetime import datetime
@@ -16,7 +17,7 @@ class Conversation(SQLModel, table=True):
     
     id: UUID = Field(default_factory=uuid4, primary_key=True, nullable=False) 
     user_id: UUID = Field(foreign_key="users.id", nullable=False) 
-    title: str = Field(nullable=False)
+    title: str = Field(nullable=True)
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), default=func.now(), nullable=False))
     
     messages: List["Message"] = Relationship(back_populates="conversation", cascade_delete=True)

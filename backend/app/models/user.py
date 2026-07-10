@@ -17,6 +17,7 @@ class User(SQLModel, table=True):
     email : EmailStr = Field(unique=True, nullable=False)
     hashed_password : str = Field(nullable=False)
     is_active : bool = Field(default=True)
+    auth_provider : str = Field(default="local", nullable=False)
     created_at: datetime = Field(
         sa_column=Column(
             DateTime(timezone=True),

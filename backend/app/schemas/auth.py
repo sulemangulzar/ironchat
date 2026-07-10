@@ -6,6 +6,7 @@ class CreateUser(BaseModel):
     name : str
     email : EmailStr
     password : str
+    auth_provider : str = "local"
 
 class LoginRequest(BaseModel):
     email: EmailStr

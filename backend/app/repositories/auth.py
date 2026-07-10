@@ -1,3 +1,4 @@
+from uuid import UUID
 from app.schemas.auth import CreateUser
 from sqlmodel.ext.asyncio.session import AsyncSession
 from app.models.user import User
@@ -9,6 +10,10 @@ class UserRepository:
     
     async def get_by_email(self, email : str):
         result = await self.session.exec(select(User).where(User.email == email))
+        return result.first()
+
+    async def get_by_id(self, id : UUID):
+        result = await self.session.exec(select(User).where(User.id == id))
         return result.first()
 
     async def create(self, user : CreateUser):

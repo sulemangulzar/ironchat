@@ -1,40 +1,29 @@
-from fastapi import APIRouter, HTTPException
-from groq import Groq
+from uuid import UUID
+from typing import List
+from fastapi import APIRouter
+from app.api.dependencies import CurrentUserDep, ChatServiceDep
+from app.schemas.chat import CreateMessage
+from app.models.chat import Conversation, Message
 
-from app.core.config import settings
-from app.db.database import get_recent_messages, save_message
-from app.schemas.chat import ChatRequest
+router = APIRouter(prefix="/chat", tags=["Chat"])
 
-router = APIRouter()
-client = Groq(api_key=settings.GROQ_API_KEY)
+@router.post("", response_model=Conversation)
+async def create_new_chat(user: CurrentUserDep, service: ChatServiceDep):
+    return await service.create_chat(user.id)
 
-SYSTEM_PROMPT = {
-    "role": "system",
-    "content": "Be concise, technical, and precise.",
-}
-MAX_HISTORY_MESSAGES = 10
+@router.get("", response_model=List[Conversation])
+async def get_all_chats(user: CurrentUserDep, service: ChatServiceDep):
+    return await service.get_user_chats(user.id)
 
+@router.get("/{chat_id}", response_model=List[Message])
+async def get_chat_history(chat_id: UUID, user: CurrentUserDep, service: ChatServiceDep):
+    return await service.get_chat_messages(chat_id, user.id)
 
-@router.post("/chat")
-async def chat(request: ChatRequest):
-    try:
-        await save_message(request.session_id, "user", request.message)
+@router.post("/{chat_id}/message", response_model=Message)
+async def send_message(chat_id: UUID, message_data: CreateMessage, user: CurrentUserDep, service: ChatServiceDep):
+    return await service.create_message(chat_id, user.id, message_data)
 
-        chat_history = await get_recent_messages(
-            session_id=request.session_id,
-            limit=MAX_HISTORY_MESSAGES,
-        )
-        full_payload = [SYSTEM_PROMPT] + chat_history
-
-        chat_completion = client.chat.completions.create(
-            messages=full_payload,  # type: ignore
-            model="llama-3.1-8b-instant",
-        )
-
-        reply = chat_completion.choices[0].message.content or ""
-        await save_message(request.session_id, "assistant", reply)
-
-        return {"reply": reply}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+@router.delete("/{chat_id}", status_code=204)
+async def delete_chat(chat_id: UUID, user: CurrentUserDep, service: ChatServiceDep):
+    """Deletes a conversation and all its messages."""
+    await service.delete_chat(chat_id, user.id)

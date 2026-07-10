@@ -1,3 +1,6 @@
+from app.schemas.auth import Token
+from app.core.security import create_refresh_token
+from app.core.security import create_access_token
 from app.core.security import get_hashed_password
 from app.exceptions import UserAlreadyExists
 from sqlmodel import select
@@ -19,7 +22,12 @@ class UserService:
         
         hashed_pw = await asyncio.to_thread(get_hashed_password, credentials.password)
 
-        user = User(name = credentials.name, email=str(credentials.email), hashed_password = hashed_pw)
+        user = User(
+            name=credentials.name, 
+            email=str(credentials.email), 
+            hashed_password=hashed_pw,
+            auth_provider=credentials.auth_provider
+        )
         created_user = await self.repositroy.create(user)
         return created_user
 
@@ -34,7 +42,7 @@ class UserService:
         if not is_password_valid:
             from fastapi import HTTPException, status
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
-            
+
         return user
 
     async def update_current_user(self, user: User, update_data: UpdateUser) -> User:
