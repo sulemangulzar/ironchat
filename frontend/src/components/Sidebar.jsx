@@ -1,3 +1,5 @@
+import Logo from './Logo'
+
 function Sidebar({ activeChat, chats, onCreateChat, setActiveChat, sidebarOpen, setSidebarOpen }) {
   return (
     <>
@@ -16,12 +18,7 @@ function Sidebar({ activeChat, chats, onCreateChat, setActiveChat, sidebarOpen, 
         }`}
       >
         <div className="flex items-center justify-between px-2 py-2">
-          <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-950 text-white dark:bg-white dark:text-slate-950">
-              ⚡
-            </span>
-            <span className="font-bold">IronChat</span>
-          </div>
+          <Logo size="sm" showText />
 
           <button
             type="button"

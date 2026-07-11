@@ -1,3 +1,4 @@
+import Logo from './Logo'
 import ThemeToggle from './ThemeToggle'
 
 import { useState } from 'react'
@@ -32,9 +33,8 @@ function AuthPage({ type, isDark, setIsDark, setPage, onAuth }) {
         <div className="absolute -left-20 top-20 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl" />
         <div className="absolute bottom-10 right-0 h-80 w-80 rounded-full bg-indigo-500/20 blur-3xl" />
 
-        <button type="button" onClick={() => setPage('landing')} className="relative z-10 flex items-center gap-3 text-left">
-          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-cyan-400 text-xl text-slate-950">⚡</span>
-          <span className="text-2xl font-black">IronChat</span>
+        <button type="button" onClick={() => setPage('landing')} className="relative z-10 text-left">
+          <Logo size="md" showText />
         </button>
 
         <div className="relative z-10">
@@ -55,8 +55,9 @@ function AuthPage({ type, isDark, setIsDark, setPage, onAuth }) {
       <section className="flex min-h-screen items-center justify-center px-5 py-10 sm:px-8">
         <div className="w-full max-w-md">
           <div className="mb-8 flex items-center justify-between">
-            <button type="button" onClick={() => setPage('landing')} className="font-black text-slate-800 dark:text-white">
-              ← IronChat
+            <button type="button" onClick={() => setPage('landing')} className="flex items-center gap-2 font-black text-slate-800 dark:text-white">
+              <Logo size="sm" />
+              <span>IronChat</span>
             </button>
             <ThemeToggle isDark={isDark} setIsDark={setIsDark} />
           </div>

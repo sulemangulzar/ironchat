@@ -1,5 +1,6 @@
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import Logo from './Logo'
 import MessageInput from './MessageInput'
 
 function ChatWindow({ activeChat, isLoading, message, messages, sendMessage, setMessage }) {
@@ -9,9 +10,7 @@ function ChatWindow({ activeChat, isLoading, message, messages, sendMessage, set
         <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-4 py-8 sm:px-6">
           {messages.length <= 1 && (
             <div className="flex flex-1 flex-col items-center justify-center text-center">
-              <div className="mb-5 grid h-16 w-16 place-items-center rounded-3xl bg-slate-950 text-2xl text-white dark:bg-white dark:text-slate-950">
-                ⚡
-              </div>
+              <Logo size="lg" className="mb-5" />
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
                 How can I help you today?
               </h1>
@@ -85,10 +84,10 @@ function Avatar({ role }) {
       className={`grid h-8 w-8 flex-none place-items-center rounded-full text-sm font-black ${
         role === 'user'
           ? 'bg-cyan-400 text-slate-950'
-          : 'bg-slate-900 text-white dark:bg-white dark:text-slate-950'
+          : 'bg-transparent'
       }`}
     >
-      {role === 'user' ? 'You'.slice(0, 1) : '⚡'}
+      {role === 'user' ? 'Y' : <Logo size="sm" />}
     </div>
   )
 }
