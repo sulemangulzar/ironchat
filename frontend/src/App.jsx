@@ -1,10 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import AuthPage from './components/AuthPage'
 import Dashboard from './components/Dashboard'
 import Footer from './components/Footer'
 import Header from './components/Header'
 import Hero from './components/Hero'
-import { clearTokens, hasSession } from './lib/storage'
+import {
+  clearActiveChatId,
+  clearTokens,
+  getActiveChatId,
+  hasSession,
+  saveActiveChatId,
+} from './lib/storage'
 import {
   createChat,
   deleteChat,
@@ -17,6 +23,31 @@ import {
   updateChatTitle,
 } from './lib/api'
 import './App.css'
+
+const sortChatsDescending = (chatList) => {
+  return [...chatList].sort((firstChat, secondChat) => {
+    const firstDate = new Date(firstChat.updated_at || firstChat.created_at || 0).getTime()
+    const secondDate = new Date(secondChat.updated_at || secondChat.created_at || 0).getTime()
+
+    return secondDate - firstDate
+  })
+}
+
+const formatChatMessages = (chatMessages) => {
+  if (chatMessages.length === 0) {
+    return [
+      {
+        role: 'assistant',
+        content: 'This chat is empty. Ask your first question to begin.',
+      },
+    ]
+  }
+
+  return chatMessages.map((chatMessage) => ({
+    role: chatMessage.role,
+    content: chatMessage.content,
+  }))
+}
 
 function App() {
   const [page, setPage] = useState(hasSession() ? 'dashboard' : 'landing')
@@ -40,13 +71,7 @@ function App() {
     document.documentElement.classList.toggle('dark', isDark)
   }, [isDark])
 
-  useEffect(() => {
-    if (page === 'dashboard' && hasSession()) {
-      loadDashboard()
-    }
-  }, [page])
-
-  const loadDashboard = async () => {
+  const loadDashboard = useCallback(async () => {
     setAppError('')
 
     try {
@@ -55,21 +80,35 @@ function App() {
 
       if (chatList.length > 0) {
         const sortedChats = sortChatsDescending(chatList)
+        const savedChatId = getActiveChatId()
+        const selectedChat = sortedChats.find((chat) => chat.id === savedChatId) || sortedChats[0]
+
         setChats(sortedChats)
-        setActiveChat((current) => current || sortedChats[0])
+        setActiveChat(selectedChat)
+        saveActiveChatId(selectedChat.id)
+
+        const chatMessages = await getChatMessages(selectedChat.id)
+        setMessages(formatChatMessages(chatMessages))
         return
       }
 
       const firstChat = await createChat()
       setChats([firstChat])
       setActiveChat(firstChat)
+      saveActiveChatId(firstChat.id)
     } catch (error) {
       setAppError(error.message || 'Could not load dashboard.')
       if (!hasSession()) {
         setPage('login')
       }
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (page === 'dashboard' && hasSession()) {
+      loadDashboard()
+    }
+  }, [loadDashboard, page])
 
   const handleAuth = async (type, form) => {
     if (type === 'signup') {
@@ -85,6 +124,7 @@ function App() {
     setUser(null)
     setChats([])
     setActiveChat(null)
+    clearActiveChatId()
     setMessages([
       {
         role: 'assistant',
@@ -94,31 +134,6 @@ function App() {
     setPage('landing')
   }
 
-  const sortChatsDescending = (chatList) => {
-    return [...chatList].sort((firstChat, secondChat) => {
-      const firstDate = new Date(firstChat.updated_at || firstChat.created_at || 0).getTime()
-      const secondDate = new Date(secondChat.updated_at || secondChat.created_at || 0).getTime()
-
-      return secondDate - firstDate
-    })
-  }
-
-  const formatChatMessages = (chatMessages) => {
-    if (chatMessages.length === 0) {
-      return [
-        {
-          role: 'assistant',
-          content: 'This chat is empty. Ask your first question to begin.',
-        },
-      ]
-    }
-
-    return chatMessages.map((chatMessage) => ({
-      role: chatMessage.role,
-      content: chatMessage.content,
-    }))
-  }
-
   const handleSelectChat = async (chat) => {
     if (activeChat?.id === chat.id) {
       setSidebarOpen(false)
@@ -126,6 +141,7 @@ function App() {
     }
 
     setActiveChat(chat)
+    saveActiveChatId(chat.id)
     setSidebarOpen(false)
     setAppError('')
     setMessage('')
@@ -149,6 +165,7 @@ function App() {
       const newChat = await createChat()
       setChats((currentChats) => sortChatsDescending([newChat, ...currentChats]))
       setActiveChat(newChat)
+      saveActiveChatId(newChat.id)
       setMessages([
         {
           role: 'assistant',
@@ -196,6 +213,7 @@ function App() {
         setActiveChat(nextChat)
 
         if (nextChat) {
+          saveActiveChatId(nextChat.id)
           setMessages([])
           setIsChatLoading(true)
 
@@ -206,6 +224,7 @@ function App() {
             setIsChatLoading(false)
           }
         } else {
+          clearActiveChatId()
           setMessages([
             {
               role: 'assistant',
