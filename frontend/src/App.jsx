@@ -33,6 +33,7 @@ function App() {
   ])
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isChatLoading, setIsChatLoading] = useState(false)
   const [appError, setAppError] = useState('')
 
   useEffect(() => {
@@ -109,10 +110,17 @@ function App() {
   }
 
   const handleSelectChat = async (chat) => {
+    if (activeChat?.id === chat.id) {
+      setSidebarOpen(false)
+      return
+    }
+
     setActiveChat(chat)
     setSidebarOpen(false)
     setAppError('')
-    setIsLoading(true)
+    setMessage('')
+    setMessages([])
+    setIsChatLoading(true)
 
     try {
       const chatMessages = await getChatMessages(chat.id)
@@ -120,7 +128,7 @@ function App() {
     } catch (error) {
       setAppError(error.message || 'Could not load chat messages.')
     } finally {
-      setIsLoading(false)
+      setIsChatLoading(false)
     }
   }
 
@@ -178,8 +186,15 @@ function App() {
         setActiveChat(nextChat)
 
         if (nextChat) {
-          const chatMessages = await getChatMessages(nextChat.id)
-          setMessages(formatChatMessages(chatMessages))
+          setMessages([])
+          setIsChatLoading(true)
+
+          try {
+            const chatMessages = await getChatMessages(nextChat.id)
+            setMessages(formatChatMessages(chatMessages))
+          } finally {
+            setIsChatLoading(false)
+          }
         } else {
           setMessages([
             {
@@ -195,7 +210,7 @@ function App() {
   }
 
   const sendMessage = async () => {
-    if (!message.trim() || isLoading || !activeChat) return
+    if (!message.trim() || isLoading || isChatLoading || !activeChat) return
 
     const userMessage = { role: 'user', content: message.trim() }
     const assistantMessage = { role: 'assistant', content: '' }
@@ -243,6 +258,7 @@ function App() {
         appError={appError}
         chats={chats}
         isDark={isDark}
+        isChatLoading={isChatLoading}
         isLoading={isLoading}
         message={message}
         messages={messages}

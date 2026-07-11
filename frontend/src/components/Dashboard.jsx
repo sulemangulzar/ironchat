@@ -7,6 +7,7 @@ function Dashboard({
   appError,
   chats,
   isDark,
+  isChatLoading,
   isLoading,
   message,
   messages,
@@ -99,6 +100,7 @@ function Dashboard({
 
         <ChatWindow
           activeChat={activeChat}
+          isChatLoading={isChatLoading}
           isLoading={isLoading}
           message={message}
           messages={messages}
