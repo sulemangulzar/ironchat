@@ -5,7 +5,16 @@ import Footer from './components/Footer'
 import Header from './components/Header'
 import Hero from './components/Hero'
 import { clearTokens, hasSession } from './lib/storage'
-import { createChat, getChats, getCurrentUser, loginUser, sendChatMessage, signupUser } from './lib/api'
+import {
+  createChat,
+  deleteChat,
+  getChats,
+  getCurrentUser,
+  loginUser,
+  sendChatMessage,
+  signupUser,
+  updateChatTitle,
+} from './lib/api'
 import './App.css'
 
 function App() {
@@ -101,6 +110,52 @@ function App() {
     }
   }
 
+  const handleUpdateChatTitle = async (chat) => {
+    const title = window.prompt('Update chat title', chat.title || 'New Chat')
+
+    if (!title?.trim()) return
+
+    setAppError('')
+
+    try {
+      const updatedChat = await updateChatTitle(chat.id, title.trim())
+      setChats((currentChats) =>
+        currentChats.map((item) => (item.id === chat.id ? updatedChat : item)),
+      )
+      setActiveChat((current) => (current?.id === chat.id ? updatedChat : current))
+    } catch (error) {
+      setAppError(error.message || 'Could not update chat title.')
+    }
+  }
+
+  const handleDeleteChat = async (chat) => {
+    const shouldDelete = window.confirm(`Delete "${chat.title || 'New Chat'}"?`)
+
+    if (!shouldDelete) return
+
+    setAppError('')
+
+    try {
+      await deleteChat(chat.id)
+      const remainingChats = chats.filter((item) => item.id !== chat.id)
+      setChats(remainingChats)
+
+      if (activeChat?.id === chat.id) {
+        setActiveChat(remainingChats[0] || null)
+        setMessages([
+          {
+            role: 'assistant',
+            content: remainingChats.length
+              ? 'Chat deleted. Select another chat or start a new one.'
+              : 'Chat deleted. Create a new chat to begin.',
+          },
+        ])
+      }
+    } catch (error) {
+      setAppError(error.message || 'Could not delete chat.')
+    }
+  }
+
   const sendMessage = async () => {
     if (!message.trim() || isLoading || !activeChat) return
 
@@ -154,7 +209,9 @@ function App() {
         message={message}
         messages={messages}
         onCreateChat={handleCreateChat}
+        onDeleteChat={handleDeleteChat}
         onLogout={handleLogout}
+        onUpdateChatTitle={handleUpdateChatTitle}
         sendMessage={sendMessage}
         setActiveChat={setActiveChat}
         setIsDark={setIsDark}

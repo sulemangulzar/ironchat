@@ -77,6 +77,17 @@ export function createChat() {
   return request('/chat/new', { method: 'POST' })
 }
 
+export function updateChatTitle(chatId, title) {
+  return request(`/chat/${chatId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ title }),
+  })
+}
+
+export function deleteChat(chatId) {
+  return request(`/chat/${chatId}`, { method: 'DELETE' })
+}
+
 export async function sendChatMessage(chatId, content, onChunk) {
   const token = getAccessToken()
   const response = await fetch(`${API_URL}/chat/${chatId}/message`, {

@@ -1,6 +1,15 @@
 import Logo from './Logo'
 
-function Sidebar({ activeChat, chats, onCreateChat, setActiveChat, sidebarOpen, setSidebarOpen }) {
+function Sidebar({
+  activeChat,
+  chats,
+  onCreateChat,
+  onDeleteChat,
+  onUpdateChatTitle,
+  setActiveChat,
+  sidebarOpen,
+  setSidebarOpen,
+}) {
   return (
     <>
       {sidebarOpen && (
@@ -46,21 +55,49 @@ function Sidebar({ activeChat, chats, onCreateChat, setActiveChat, sidebarOpen, 
           )}
 
           {chats.map((chat) => (
-            <button
-              type="button"
+            <div
               key={chat.id}
-              onClick={() => {
-                setActiveChat(chat)
-                setSidebarOpen(false)
-              }}
-              className={`w-full truncate rounded-xl px-3 py-3 text-left text-sm transition ${
+              className={`group flex items-center gap-1 rounded-xl pr-1 transition ${
                 activeChat?.id === chat.id
                   ? 'bg-slate-200 font-semibold dark:bg-[#2f2f2f]'
                   : 'hover:bg-slate-200 dark:hover:bg-white/10'
               }`}
             >
-              {chat.title || 'New Chat'}
-            </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveChat(chat)
+                  setSidebarOpen(false)
+                }}
+                className="min-w-0 flex-1 truncate px-3 py-3 text-left text-sm"
+              >
+                {chat.title || 'New Chat'}
+              </button>
+
+              <button
+                type="button"
+                title="Edit title"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onUpdateChatTitle(chat)
+                }}
+                className="flex-none rounded-lg px-2 py-1 text-xs text-slate-500 opacity-0 transition hover:bg-white hover:text-slate-950 group-hover:opacity-100 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
+              >
+                ✎
+              </button>
+
+              <button
+                type="button"
+                title="Delete chat"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onDeleteChat(chat)
+                }}
+                className="flex-none rounded-lg px-2 py-1 text-xs text-red-500 opacity-0 transition hover:bg-red-50 group-hover:opacity-100 dark:hover:bg-red-500/10"
+              >
+                🗑
+              </button>
+            </div>
           ))}
         </div>
 

@@ -11,7 +11,9 @@ function Dashboard({
   message,
   messages,
   onCreateChat,
+  onDeleteChat,
   onLogout,
+  onUpdateChatTitle,
   sendMessage,
   setActiveChat,
   setIsDark,
@@ -27,6 +29,8 @@ function Dashboard({
         activeChat={activeChat}
         chats={chats}
         onCreateChat={onCreateChat}
+        onDeleteChat={onDeleteChat}
+        onUpdateChatTitle={onUpdateChatTitle}
         setActiveChat={setActiveChat}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
@@ -42,8 +46,26 @@ function Dashboard({
             >
               ☰
             </button>
-            <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-2">
               <h1 className="truncate text-base font-semibold">{activeChat?.title || 'IronChat'}</h1>
+              {activeChat && (
+                <div className="flex flex-none items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => onUpdateChatTitle(activeChat)}
+                    className="rounded-lg px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onDeleteChat(activeChat)}
+                    className="rounded-lg px-2 py-1 text-xs font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
