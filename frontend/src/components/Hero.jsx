@@ -3,17 +3,17 @@ import Features from './Features'
 
 function Hero({ setPage }) {
   return (
-    <main id="home" className="relative overflow-hidden">
-      <div className="absolute left-1/2 top-0 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-400/20 blur-3xl dark:bg-cyan-400/15" />
-      <div className="absolute right-0 top-48 h-80 w-80 rounded-full bg-indigo-500/20 blur-3xl" />
+    <main id="home" className="relative overflow-hidden bg-white dark:bg-[#212121]">
+      <div className="absolute left-1/2 top-10 h-80 w-80 -translate-x-1/2 rounded-full bg-cyan-400/10 blur-3xl dark:bg-cyan-400/10" />
+      <div className="absolute right-0 top-52 h-72 w-72 rounded-full bg-slate-400/10 blur-3xl dark:bg-white/5" />
 
-      <section className="relative z-10 mx-auto grid max-w-7xl items-center gap-12 px-5 pb-16 pt-10 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:pb-24 lg:pt-16">
+      <section className="relative z-10 mx-auto grid max-w-7xl items-center gap-12 px-5 pb-16 pt-14 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:pb-24 lg:pt-20">
         <div>
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-bold text-cyan-700 dark:text-cyan-200">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
             <span className="h-2 w-2 rounded-full bg-cyan-400" /> AI chatbot project
           </div>
 
-          <h1 className="max-w-4xl text-5xl font-black leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
+          <h1 className="max-w-4xl text-5xl font-black leading-[0.95] tracking-tight text-slate-950 dark:text-white sm:text-6xl lg:text-7xl">
             A simple and elegant AI chatbot.
           </h1>
 
@@ -25,18 +25,17 @@ function Hero({ setPage }) {
             <button
               type="button"
               onClick={() => setPage('signup')}
-              className="rounded-2xl bg-cyan-400 px-7 py-4 text-center font-black text-slate-950 shadow-2xl shadow-cyan-500/20 transition hover:-translate-y-1 hover:bg-cyan-300"
+              className="rounded-2xl bg-slate-950 px-7 py-4 text-center font-bold text-white transition hover:-translate-y-1 hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
             >
               Get Started
             </button>
             <a
               href="#features"
-              className="rounded-2xl border border-slate-200 bg-white/70 px-7 py-4 text-center font-black text-slate-800 shadow-sm backdrop-blur transition hover:-translate-y-1 hover:shadow-lg dark:border-white/10 dark:bg-white/10 dark:text-white"
+              className="rounded-2xl border border-slate-200 bg-white px-7 py-4 text-center font-bold text-slate-800 transition hover:-translate-y-1 hover:bg-slate-50 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
             >
               Explore Features
             </a>
           </div>
-
         </div>
 
         <ChatPreview />
@@ -46,6 +45,5 @@ function Hero({ setPage }) {
     </main>
   )
 }
-
 
 export default Hero

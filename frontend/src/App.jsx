@@ -10,7 +10,7 @@ import './App.css'
 
 function App() {
   const [page, setPage] = useState(hasSession() ? 'dashboard' : 'landing')
-  const [isDark, setIsDark] = useState(true)
+  const [isDark, setIsDark] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeChat, setActiveChat] = useState(null)
   const [chats, setChats] = useState([])
@@ -168,7 +168,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f5ef] text-slate-950 transition-colors duration-300 dark:bg-[#080b12] dark:text-white">
+    <div className="min-h-screen bg-white text-slate-950 transition-colors duration-300 dark:bg-[#212121] dark:text-white">
       <Header isDark={isDark} setIsDark={setIsDark} setPage={setPage} />
       <Hero setPage={setPage} />
       <Footer />
