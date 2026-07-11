@@ -32,6 +32,19 @@ class MessageService:
         self.chat_repository = chat_repository
         self.groq_client = AsyncGroq(api_key=settings.GROQ_API_KEY)
 
+    async def get_messages(self, chat_id: UUID, user_id: UUID):
+        await self.chat_repository.get_one_chat(user_id, chat_id)
+        messages = await self.repository.get_all_messages(chat_id)
+        return [
+            {
+                "id": str(message.id),
+                "role": message.role.value,
+                "content": message.content,
+                "created_at": message.created_at,
+            }
+            for message in messages
+        ]
+
     async def generate_response(self, chat_id: UUID, user_prompt: SendMessage, user_id: UUID):
         chat = await self.chat_repository.get_one_chat(user_id, chat_id)
         

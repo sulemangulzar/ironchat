@@ -15,7 +15,7 @@ function Dashboard({
   onLogout,
   onUpdateChatTitle,
   sendMessage,
-  setActiveChat,
+  onSelectChat,
   setIsDark,
   setMessage,
   setPage,
@@ -31,7 +31,7 @@ function Dashboard({
         onCreateChat={onCreateChat}
         onDeleteChat={onDeleteChat}
         onUpdateChatTitle={onUpdateChatTitle}
-        setActiveChat={setActiveChat}
+        onSelectChat={onSelectChat}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
       />

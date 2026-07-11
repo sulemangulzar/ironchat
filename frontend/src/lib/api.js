@@ -88,6 +88,10 @@ export function deleteChat(chatId) {
   return request(`/chat/${chatId}`, { method: 'DELETE' })
 }
 
+export function getChatMessages(chatId) {
+  return request(`/chat/${chatId}/messages`)
+}
+
 export async function sendChatMessage(chatId, content, onChunk) {
   const token = getAccessToken()
   const response = await fetch(`${API_URL}/chat/${chatId}/message`, {

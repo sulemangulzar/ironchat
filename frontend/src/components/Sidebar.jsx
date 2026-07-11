@@ -6,7 +6,7 @@ function Sidebar({
   onCreateChat,
   onDeleteChat,
   onUpdateChatTitle,
-  setActiveChat,
+  onSelectChat,
   sidebarOpen,
   setSidebarOpen,
 }) {
@@ -65,10 +65,7 @@ function Sidebar({
             >
               <button
                 type="button"
-                onClick={() => {
-                  setActiveChat(chat)
-                  setSidebarOpen(false)
-                }}
+                onClick={() => onSelectChat(chat)}
                 className="min-w-0 flex-1 truncate px-3 py-3 text-left text-sm"
               >
                 {chat.title || 'New Chat'}

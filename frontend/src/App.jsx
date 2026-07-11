@@ -10,6 +10,7 @@ import {
   deleteChat,
   getChats,
   getCurrentUser,
+  getChatMessages,
   loginUser,
   sendChatMessage,
   signupUser,
@@ -91,6 +92,38 @@ function App() {
     setPage('landing')
   }
 
+  const formatChatMessages = (chatMessages) => {
+    if (chatMessages.length === 0) {
+      return [
+        {
+          role: 'assistant',
+          content: 'This chat is empty. Ask your first question to begin.',
+        },
+      ]
+    }
+
+    return chatMessages.map((chatMessage) => ({
+      role: chatMessage.role,
+      content: chatMessage.content,
+    }))
+  }
+
+  const handleSelectChat = async (chat) => {
+    setActiveChat(chat)
+    setSidebarOpen(false)
+    setAppError('')
+    setIsLoading(true)
+
+    try {
+      const chatMessages = await getChatMessages(chat.id)
+      setMessages(formatChatMessages(chatMessages))
+    } catch (error) {
+      setAppError(error.message || 'Could not load chat messages.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleCreateChat = async () => {
     setAppError('')
 
@@ -141,15 +174,20 @@ function App() {
       setChats(remainingChats)
 
       if (activeChat?.id === chat.id) {
-        setActiveChat(remainingChats[0] || null)
-        setMessages([
-          {
-            role: 'assistant',
-            content: remainingChats.length
-              ? 'Chat deleted. Select another chat or start a new one.'
-              : 'Chat deleted. Create a new chat to begin.',
-          },
-        ])
+        const nextChat = remainingChats[0] || null
+        setActiveChat(nextChat)
+
+        if (nextChat) {
+          const chatMessages = await getChatMessages(nextChat.id)
+          setMessages(formatChatMessages(chatMessages))
+        } else {
+          setMessages([
+            {
+              role: 'assistant',
+              content: 'Chat deleted. Create a new chat to begin.',
+            },
+          ])
+        }
       }
     } catch (error) {
       setAppError(error.message || 'Could not delete chat.')
@@ -213,7 +251,7 @@ function App() {
         onLogout={handleLogout}
         onUpdateChatTitle={handleUpdateChatTitle}
         sendMessage={sendMessage}
-        setActiveChat={setActiveChat}
+        onSelectChat={handleSelectChat}
         setIsDark={setIsDark}
         setMessage={setMessage}
         setPage={setPage}
