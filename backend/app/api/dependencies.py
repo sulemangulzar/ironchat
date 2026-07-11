@@ -1,12 +1,21 @@
+from app.services.message import MessageService
+from app.repositories.message import MessageRepository
 from app.services.chat import ChatService
 from app.repositories.chat import ChatRepository
+from app.models import User
 from uuid import UUID
+from app.utils.exceptions import InvalidToken
+from app.core.security import decode_token
+from app.repositories.auth import UserRepository
 from app.services.auth import UserService
 from fastapi import Depends
-from typing import Annotated
-from app.db.database import get_session
 from sqlmodel.ext.asyncio.session import AsyncSession
-from app.repositories.auth import UserRepository
+from typing import Annotated
+from app.core.database import get_session
+from fastapi.security import OAuth2PasswordBearer
+
+oauth_scheme = OAuth2PasswordBearer(tokenUrl="/auth/v1/login")
+
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
@@ -16,30 +25,25 @@ def get_user_service(session : SessionDep):
 
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 
-from fastapi.security import OAuth2PasswordBearer
-from app.core.security import decode_token
-from fastapi import HTTPException, status
-from app.models.user import User
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/v1/login")
-
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], session: SessionDep) -> User:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+async def get_current_user(token : Annotated[str, Depends(oauth_scheme)], session : SessionDep):
     payload = decode_token(token)
     if payload is None:
-        raise credentials_exception
-    id : UUID = payload.get("sub")
-    if id is None:
-        raise credentials_exception
-        
+        raise InvalidToken()
+    
+    user_id_str = payload.get("sub")
+    if not user_id_str:
+        raise InvalidToken()
+    
+    try:
+        user_id = UUID(user_id_str)
+    except ValueError:
+        raise InvalidToken()
+    
     repository = UserRepository(session)
-    user = await repository.get_by_id(id)
-    if user is None:
-        raise credentials_exception
+    user = await repository.get_by_id(user_id)
+    if not user:
+         raise InvalidToken()
+
     return user
 
 CurrentUserDep = Annotated[User, Depends(get_current_user)]
@@ -49,3 +53,10 @@ def get_chat_service(session : SessionDep):
     return ChatService(repository)
 
 ChatServiceDep = Annotated[ChatService, Depends(get_chat_service)]
+
+def get_message_service(session : SessionDep):
+    msg_repo = MessageRepository(session)
+    chat_repo = ChatRepository(session)
+    return MessageService(msg_repo, chat_repo)
+
+MessageServiceDep = Annotated[MessageService, Depends(get_message_service)]

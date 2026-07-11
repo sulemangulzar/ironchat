@@ -1,58 +1,152 @@
-from app.schemas.auth import Token
+from app.utils.exceptions import InvalidToken
 from app.core.security import create_refresh_token
 from app.core.security import create_access_token
-from app.core.security import get_hashed_password
-from app.exceptions import UserAlreadyExists
-from sqlmodel import select
-from app.schemas.auth import CreateUser, LoginRequest, UpdateUser
-from sqlmodel.ext.asyncio.session import AsyncSession
-from app.models.user import User
-from app.repositories.auth import UserRepository
+from app.utils.exceptions import LoginException
+from app.core.security import verify_hash
+from pydantic import EmailStr
+from app.utils.exceptions import UserAlreadyExists
+from app.models import User
 import asyncio
-
+from app.core.security import get_hash
+from app.schemas.auth import CreateUser
+from app.repositories.auth import UserRepository
+from app.core.security import decode_token
+from uuid import UUID
+from datetime import datetime, timezone, timedelta
+from app.core.config import settings
+from app.models.refresh_token import RefreshToken
 
 class UserService:
     def __init__(self, repository : UserRepository):
         self.repositroy = repository
-
+    
     async def create(self, credentials : CreateUser):
         user_exists = await self.repositroy.get_by_email(credentials.email)
         if user_exists:
-            raise UserAlreadyExists
+            raise UserAlreadyExists()
         
-        hashed_pw = await asyncio.to_thread(get_hashed_password, credentials.password)
+        hashed_pw = await asyncio.to_thread(get_hash, credentials.password)
 
         user = User(
-            name=credentials.name, 
+            username=credentials.username, 
             email=str(credentials.email), 
-            hashed_password=hashed_pw,
-            auth_provider=credentials.auth_provider
+            hashed_password=hashed_pw
         )
-        created_user = await self.repositroy.create(user)
-        return created_user
+        return await self.repositroy.create(user)
 
-    async def authenticate_user(self, credentials: LoginRequest) -> User:
-        user = await self.repositroy.get_by_email(credentials.email)
-        if not user:
-            from fastapi import HTTPException, status
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
-        
-        from app.core.security import verify_password
-        is_password_valid = await asyncio.to_thread(verify_password, credentials.password, user.hashed_password)
-        if not is_password_valid:
-            from fastapi import HTTPException, status
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
-
-        return user
-
-    async def update_current_user(self, user: User, update_data: UpdateUser) -> User:
-        data = update_data.model_dump(exclude_unset=True)
-        if "password" in data:
-            hashed_pw = await asyncio.to_thread(get_hashed_password, data.pop("password"))
-            data["hashed_password"] = hashed_pw
+    async def login(self, email : str, password : str):
+        user = await self.repositroy.get_by_email(email)
+        if not user or not user.hashed_password:
+            raise LoginException()
             
-        updated_user = await self.repositroy.update(user, data)
-        return updated_user
+        is_valid = await asyncio.to_thread(verify_hash, password, user.hashed_password)
+        if not is_valid:
+            raise LoginException()
 
-    async def delete_current_user(self, user: User):
+        access_token = create_access_token({"sub": str(user.id)})
+        refresh_token = create_refresh_token({"sub": str(user.id)})
+        
+        hashed_rt = await asyncio.to_thread(get_hash, refresh_token)
+        expires_dt = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        
+        db_rt = RefreshToken(
+            token=hashed_rt,
+            expires_at=int(expires_dt.timestamp()),
+            user_id=user.id
+        )
+        await self.repositroy.save_refresh_token(db_rt)
+
+        return {
+            "access_token" : access_token,
+            "refresh_token" : refresh_token,
+            "token_type": "bearer"
+         }
+
+    async def refresh_token(self, old_refresh_token: str):
+        
+        payload = decode_token(old_refresh_token)
+        if not payload:
+            raise InvalidToken()
+        
+        user_id_str = payload.get("sub")
+        if not user_id_str:
+            raise InvalidToken()
+        
+        try:
+            user_id = UUID(user_id_str)
+        except ValueError:
+            raise InvalidToken()
+
+        user = await self.repositroy.get_by_id(user_id)
+        if not user:
+            raise InvalidToken()
+
+        db_tokens = await self.repositroy.get_refresh_tokens_by_user(user_id)
+        valid_db_token = None
+        for t in db_tokens:
+            is_valid = await asyncio.to_thread(verify_hash, old_refresh_token, t.token)
+            if is_valid:
+                valid_db_token = t
+                break
+        
+        if not valid_db_token:
+            raise InvalidToken()
+        
+        now = int(datetime.now(timezone.utc).timestamp())
+        if valid_db_token.expires_at < now:
+            await self.repositroy.delete_refresh_token(valid_db_token)
+            raise InvalidToken("Refresh token expired")
+
+        await self.repositroy.delete_refresh_token(valid_db_token)
+        
+        new_access_token = create_access_token({"sub": str(user.id)})
+        new_refresh_token = create_refresh_token({"sub": str(user.id)})
+
+        hashed_rt = await asyncio.to_thread(get_hash, new_refresh_token)
+        expires_dt = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        db_rt = RefreshToken(
+            token=hashed_rt,
+            expires_at=int(expires_dt.timestamp()),
+            user_id=user.id
+        )
+        await self.repositroy.save_refresh_token(db_rt)
+
+        return {
+            "access_token": new_access_token,
+            "refresh_token": new_refresh_token,
+            "token_type": "bearer"
+        }
+
+    async def update_user(self, user: User, data):
+        if data.username is not None:
+            user.username = data.username
+        if data.email is not None:
+            user.email = str(data.email)
+        if data.password is not None:
+            hashed_pw = await asyncio.to_thread(get_hash, data.password)
+            user.hashed_password = hashed_pw
+        return await self.repositroy.update(user)
+
+    async def delete_user(self, user: User):
         await self.repositroy.delete(user)
+    
+    async def logout(self, refresh_token):
+        payload = decode_token(refresh_token)
+        if not payload:
+            raise InvalidToken()
+        
+        user_id_str = payload.get("sub")
+        if not user_id_str:
+            raise InvalidToken()
+        
+        try:
+            user_id = UUID(user_id_str)
+        except ValueError:
+            raise InvalidToken()
+
+        user = await self.repositroy.get_by_id(user_id)
+        if not user:
+            raise InvalidToken()
+        
+        remove_token = await self.repositroy.delete_all_refresh_token(user_id)
+        return {"message": "Logged Out Successfully"}

@@ -1,19 +1,23 @@
 from app.core.config import settings
-from sqlmodel import SQLModel
 import asyncio
 from logging.config import fileConfig
-from app.models.chat import Conversation, Message
 import sqlmodel
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from app.models.user import User 
+from sqlmodel import SQLModel
 from alembic import context
+from app.models.chat import Chat
+from app.models.message import Message
+from app.models.user import User
+from app.models.oauth_account import OAuthAccount
+from app.models.refresh_token import RefreshToken
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemyurl", settings.DATABASE_URL)
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
@@ -67,12 +71,14 @@ async def run_async_migrations() -> None:
     and associate a connection with the context.
 
     """
+    ini_section = config.get_section(config.config_ini_section, {})
+    ini_section["sqlalchemy.url"] = settings.DATABASE_URL
 
     connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        ini_section,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
-        connect_args={"statement_cache_size": 0},
+        connect_args={"statement_cache_size": 0, "prepared_statement_cache_size": 0}
     )
 
     async with connectable.connect() as connection:

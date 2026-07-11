@@ -1,35 +1,26 @@
-from typing import Optional
-from enum import Enum
-from typing import List
-from datetime import datetime
-from uuid import UUID, uuid4
+from typing import Optional, List, TYPE_CHECKING
+from uuid import UUID
 
-from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import Column, DateTime, func
+if TYPE_CHECKING:
+    from .message import Message
+    from .user import User
 
-class Role(str, Enum):
-    SYSTEM = "system"
-    USER = "user"
-    ASSISTANT = "assistant"
+from sqlmodel import Field, Relationship
 
-class Conversation(SQLModel, table=True):
-    __tablename__ = "conversations"
-    
-    id: UUID = Field(default_factory=uuid4, primary_key=True, nullable=False) 
-    user_id: UUID = Field(foreign_key="users.id", nullable=False) 
-    title: str = Field(nullable=True)
-    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), default=func.now(), nullable=False))
-    
-    messages: List["Message"] = Relationship(back_populates="conversation", cascade_delete=True)
-    
+from .base import UUIDMixin, TimestampMixin
 
-class Message(SQLModel, table=True):
-    __tablename__ = "messages"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True, nullable=False) 
-    conversation_id: UUID = Field(foreign_key="conversations.id", nullable=False)
-    role: Role = Field(nullable=False) 
-    content: str = Field(nullable=False)
-    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), default=func.now(), nullable=False))  
+class Chat(UUIDMixin, TimestampMixin, table=True):
+    __tablename__ = "chats"
 
-    conversation: Conversation = Relationship(back_populates="messages")
+    title: Optional[str] = None
+
+    model: str = "llama-3.3-70b-versatile"
+
+    user_id: UUID = Field(foreign_key="users.id")
+
+    user: "User" = Relationship(back_populates="chats")
+
+    messages: List["Message"] = Relationship(
+        back_populates="chat"
+    )

@@ -1,8 +1,9 @@
-from uuid import UUID
+from app.models.refresh_token import RefreshToken
 from app.schemas.auth import CreateUser
+from sqlmodel import select
+from sqlalchemy import UUID
 from sqlmodel.ext.asyncio.session import AsyncSession
 from app.models.user import User
-from sqlmodel import select
 
 class UserRepository:
     def __init__(self, session : AsyncSession):
@@ -15,16 +16,35 @@ class UserRepository:
     async def get_by_id(self, id : UUID):
         result = await self.session.exec(select(User).where(User.id == id))
         return result.first()
-
-    async def create(self, user : CreateUser):
+    
+    async def create(self, user : User):
         self.session.add(user)
         await self.session.commit()
         await self.session.refresh(user)
         return user
 
-    async def update(self, user: User, update_data: dict):
-        for key, value in update_data.items():
-            setattr(user, key, value)
+    async def save_refresh_token(self, refresh_token):
+        self.session.add(refresh_token)
+        await self.session.commit()
+        await self.session.refresh(refresh_token)
+        return refresh_token
+
+    async def get_refresh_tokens_by_user(self, user_id: UUID):
+        from app.models.refresh_token import RefreshToken
+        result = await self.session.exec(select(RefreshToken).where(RefreshToken.user_id == user_id))
+        return result.all()
+
+    async def delete_refresh_token(self, refresh_token):
+        await self.session.delete(refresh_token)
+        await self.session.commit()
+    
+    async def delete_all_refresh_token(self, user_id):
+        result = await self.session.exec(select(RefreshToken).where(RefreshToken.user_id == user_id))
+        for token in result.all():
+            await self.session.delete(token)
+        await self.session.commit()
+
+    async def update(self, user: User):
         self.session.add(user)
         await self.session.commit()
         await self.session.refresh(user)
