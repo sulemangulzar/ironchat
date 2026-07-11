@@ -1,11 +1,29 @@
 import ThemeToggle from './ThemeToggle'
 
-function AuthPage({ type, isDark, setIsDark, setPage }) {
-  const isSignup = type === 'signup'
+import { useState } from 'react'
 
-  const handleSubmit = (event) => {
+function AuthPage({ type, isDark, setIsDark, setPage, onAuth }) {
+  const isSignup = type === 'signup'
+  const [form, setForm] = useState({ username: '', email: '', password: '' })
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleChange = (event) => {
+    setForm({ ...form, [event.target.name]: event.target.value })
+  }
+
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    setPage('dashboard')
+    setError('')
+    setIsSubmitting(true)
+
+    try {
+      await onAuth(type, form)
+    } catch (authError) {
+      setError(authError.message || 'Authentication failed. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -50,15 +68,44 @@ function AuthPage({ type, isDark, setIsDark, setPage }) {
             </p>
 
             <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
-              {isSignup && <FormInput label="Full name" placeholder="Suleman Gulzar" />}
-              <FormInput label="Email address" type="email" placeholder="you@example.com" />
-              <FormInput label="Password" type="password" placeholder="••••••••" />
+              {isSignup && (
+                <FormInput
+                  label="Full name"
+                  name="username"
+                  value={form.username}
+                  onChange={handleChange}
+                  placeholder="Suleman Gulzar"
+                />
+              )}
+              <FormInput
+                label="Email address"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                type="email"
+                placeholder="you@example.com"
+              />
+              <FormInput
+                label="Password"
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                type="password"
+                placeholder="••••••••"
+              />
+
+              {error && (
+                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
+                  {error}
+                </div>
+              )}
 
               <button
                 type="submit"
-                className="w-full rounded-2xl bg-slate-950 py-4 font-black text-white transition hover:-translate-y-0.5 hover:shadow-xl dark:bg-cyan-400 dark:text-slate-950"
+                disabled={isSubmitting}
+                className="w-full rounded-2xl bg-slate-950 py-4 font-black text-white transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 dark:bg-cyan-400 dark:text-slate-950"
               >
-                {isSignup ? 'Sign up and open dashboard' : 'Login and open dashboard'}
+                {isSubmitting ? 'Please wait...' : isSignup ? 'Sign up and open dashboard' : 'Login and open dashboard'}
               </button>
             </form>
 
@@ -79,12 +126,15 @@ function AuthPage({ type, isDark, setIsDark, setPage }) {
   )
 }
 
-function FormInput({ label, placeholder, type = 'text' }) {
+function FormInput({ label, name, onChange, placeholder, type = 'text', value }) {
   return (
     <label className="block">
       <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">{label}</span>
       <input
         type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
         placeholder={placeholder}
         required
         className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-slate-950 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/15 dark:border-white/10 dark:bg-white/10 dark:text-white dark:placeholder:text-slate-500"

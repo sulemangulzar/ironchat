@@ -4,10 +4,14 @@ import ThemeToggle from './ThemeToggle'
 
 function Dashboard({
   activeChat,
+  appError,
+  chats,
   isDark,
   isLoading,
   message,
   messages,
+  onCreateChat,
+  onLogout,
   sendMessage,
   setActiveChat,
   setIsDark,
@@ -15,11 +19,14 @@ function Dashboard({
   setPage,
   setSidebarOpen,
   sidebarOpen,
+  user,
 }) {
   return (
     <main className="flex h-screen overflow-hidden bg-slate-100 text-slate-950 dark:bg-[#080b12] dark:text-white">
       <Sidebar
         activeChat={activeChat}
+        chats={chats}
+        onCreateChat={onCreateChat}
         setActiveChat={setActiveChat}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
@@ -36,8 +43,10 @@ function Dashboard({
               ☰
             </button>
             <div className="min-w-0">
-              <h1 className="truncate text-lg font-black sm:text-xl">{activeChat.title}</h1>
-              <p className="truncate text-sm text-slate-500 dark:text-slate-400">IronChat assistant</p>
+              <h1 className="truncate text-lg font-black sm:text-xl">{activeChat?.title || 'IronChat'}</h1>
+              <p className="truncate text-sm text-slate-500 dark:text-slate-400">
+                {user ? `Signed in as ${user.username}` : 'Loading your workspace...'}
+              </p>
             </div>
           </div>
 
@@ -50,8 +59,21 @@ function Dashboard({
             >
               Home
             </button>
+            <button
+              type="button"
+              onClick={onLogout}
+              className="rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:-translate-y-0.5 dark:bg-white dark:text-slate-950"
+            >
+              Logout
+            </button>
           </div>
         </header>
+
+        {appError && (
+          <div className="border-b border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300 sm:px-6">
+            {appError}
+          </div>
+        )}
 
         <ChatWindow
           activeChat={activeChat}

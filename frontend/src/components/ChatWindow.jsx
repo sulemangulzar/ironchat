@@ -7,8 +7,10 @@ function ChatWindow({ activeChat, isLoading, message, messages, sendMessage, set
         <div className="mx-auto max-w-4xl space-y-5">
           <div className="mb-8 rounded-[2rem] border border-slate-200 bg-white/70 p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-cyan-500">Current chat</p>
-            <h2 className="mt-2 text-2xl font-black">{activeChat.title}</h2>
-            <p className="mt-2 text-slate-500 dark:text-slate-400">{activeChat.preview}</p>
+            <h2 className="mt-2 text-2xl font-black">{activeChat?.title || 'No chat selected'}</h2>
+            <p className="mt-2 text-slate-500 dark:text-slate-400">
+              {activeChat ? 'Start typing below to talk with IronChat.' : 'Create a new chat from the sidebar to begin.'}
+            </p>
           </div>
 
           {messages.map((item, index) => (
@@ -43,6 +45,7 @@ function ChatWindow({ activeChat, isLoading, message, messages, sendMessage, set
       </div>
 
       <MessageInput
+        disabled={!activeChat}
         message={message}
         setMessage={setMessage}
         sendMessage={sendMessage}

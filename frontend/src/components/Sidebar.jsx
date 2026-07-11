@@ -1,10 +1,4 @@
-const chatItems = [
-  { id: 'general', title: 'General Chat', preview: 'Ask anything you want...' },
-  { id: 'coding', title: 'Coding Help', preview: 'Debug, explain, and build...' },
-  { id: 'ideas', title: 'Project Ideas', preview: 'Brainstorm and improve...' },
-]
-
-function Sidebar({ activeChat, setActiveChat, sidebarOpen, setSidebarOpen }) {
+function Sidebar({ activeChat, chats, onCreateChat, setActiveChat, sidebarOpen, setSidebarOpen }) {
   return (
     <>
       {sidebarOpen && (
@@ -43,13 +37,20 @@ function Sidebar({ activeChat, setActiveChat, sidebarOpen, setSidebarOpen }) {
 
         <button
           type="button"
+          onClick={onCreateChat}
           className="mt-6 rounded-2xl bg-slate-950 px-4 py-3 font-black text-white transition hover:-translate-y-0.5 dark:bg-cyan-400 dark:text-slate-950"
         >
           + New Chat
         </button>
 
-        <div className="mt-6 space-y-2">
-          {chatItems.map((chat) => (
+        <div className="mt-6 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+          {chats.length === 0 && (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
+              No chats yet. Create your first chat to begin.
+            </div>
+          )}
+
+          {chats.map((chat) => (
             <button
               type="button"
               key={chat.id}
@@ -58,18 +59,20 @@ function Sidebar({ activeChat, setActiveChat, sidebarOpen, setSidebarOpen }) {
                 setSidebarOpen(false)
               }}
               className={`w-full rounded-2xl p-4 text-left transition ${
-                activeChat.id === chat.id
+                activeChat?.id === chat.id
                   ? 'bg-cyan-400/20 ring-1 ring-cyan-400/30'
                   : 'hover:bg-slate-100 dark:hover:bg-white/10'
               }`}
             >
-              <p className="font-black">{chat.title}</p>
-              <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">{chat.preview}</p>
+              <p className="truncate font-black">{chat.title || 'New Chat'}</p>
+              <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">
+                {chat.updated_at ? 'Saved conversation' : 'Ready to start'}
+              </p>
             </button>
           ))}
         </div>
 
-        <div className="mt-auto rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
           <p className="text-sm font-black">Tip</p>
           <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
             Ask short, clear questions for better answers.

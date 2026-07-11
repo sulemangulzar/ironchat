@@ -1,16 +1,38 @@
-# React + Vite
+# IronChat Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Production-ready React + Tailwind frontend for IronChat.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Landing page
+- Signup and login screens
+- Authenticated chat dashboard
+- Chat sidebar
+- Streaming AI responses
+- Dark/light mode
+- Responsive layout
+- Environment-based backend URL
 
-## React Compiler
+## Environment Variables
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Create `frontend/.env`:
 
-## Expanding the Oxlint configuration
+```env
+VITE_API_URL=http://localhost:8001
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+For production, set `VITE_API_URL` to your deployed backend URL, for example:
+
+```env
+VITE_API_URL=https://your-backend.onrender.com
+```
+
+## Commands
+
+```bash
+npm install
+npm run dev
+npm run build
+npm run lint
+npm run preview
+```
