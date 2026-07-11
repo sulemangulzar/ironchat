@@ -1,7 +1,7 @@
 import ChatPreview from './ChatPreview'
 import Features from './Features'
 
-function Hero() {
+function Hero({ setPage }) {
   return (
     <main id="home" className="relative overflow-hidden">
       <div className="absolute left-1/2 top-0 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-400/20 blur-3xl dark:bg-cyan-400/15" />
@@ -22,12 +22,13 @@ function Hero() {
           </p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <a
-              href="#preview"
+            <button
+              type="button"
+              onClick={() => setPage('dashboard')}
               className="rounded-2xl bg-cyan-400 px-7 py-4 text-center font-black text-slate-950 shadow-2xl shadow-cyan-500/20 transition hover:-translate-y-1 hover:bg-cyan-300"
             >
-              View Preview
-            </a>
+              Open Chat
+            </button>
             <a
               href="#features"
               className="rounded-2xl border border-slate-200 bg-white/70 px-7 py-4 text-center font-black text-slate-800 shadow-sm backdrop-blur transition hover:-translate-y-1 hover:shadow-lg dark:border-white/10 dark:bg-white/10 dark:text-white"

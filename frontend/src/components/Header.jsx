@@ -1,6 +1,6 @@
 import ThemeToggle from './ThemeToggle'
 
-function Header({ isDark, setIsDark }) {
+function Header({ isDark, setIsDark, setPage }) {
   return (
     <header className="relative z-20 mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8">
       <a href="#home" className="flex items-center gap-3">
@@ -16,7 +16,16 @@ function Header({ isDark, setIsDark }) {
         <a href="#about" className="transition hover:text-cyan-500">About</a>
       </nav>
 
-      <ThemeToggle isDark={isDark} setIsDark={setIsDark} />
+      <div className="flex items-center gap-2">
+        <ThemeToggle isDark={isDark} setIsDark={setIsDark} />
+        <button
+          type="button"
+          onClick={() => setPage('dashboard')}
+          className="hidden rounded-full bg-slate-950 px-5 py-2.5 text-sm font-bold text-white shadow-xl shadow-slate-900/10 transition hover:-translate-y-0.5 dark:bg-white dark:text-slate-950 sm:block"
+        >
+          Open Chat
+        </button>
+      </div>
     </header>
   )
 }
