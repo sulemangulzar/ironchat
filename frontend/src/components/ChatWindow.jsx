@@ -1,46 +1,44 @@
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import MessageInput from './MessageInput'
 
 function ChatWindow({ activeChat, isLoading, message, messages, sendMessage, setMessage }) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6">
-        <div className="mx-auto max-w-4xl space-y-5">
-          <div className="mb-8 rounded-[2rem] border border-slate-200 bg-white/70 p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-cyan-500">Current chat</p>
-            <h2 className="mt-2 text-2xl font-black">{activeChat?.title || 'No chat selected'}</h2>
-            <p className="mt-2 text-slate-500 dark:text-slate-400">
-              {activeChat ? 'Start typing below to talk with IronChat.' : 'Create a new chat from the sidebar to begin.'}
-            </p>
-          </div>
-
-          {messages.map((item, index) => (
-            <div
-              key={`${item.role}-${index}`}
-              className={`flex ${item.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[85%] rounded-3xl px-5 py-4 leading-7 shadow-sm sm:max-w-[72%] ${
-                  item.role === 'user'
-                    ? 'rounded-br-md bg-cyan-400 text-slate-950'
-                    : 'rounded-bl-md border border-slate-200 bg-white text-slate-700 dark:border-white/10 dark:bg-white/10 dark:text-slate-100'
-                }`}
-              >
-                {item.content}
+    <div className="flex min-h-0 flex-1 flex-col bg-white text-slate-950 dark:bg-[#212121] dark:text-white">
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-4 py-8 sm:px-6">
+          {messages.length <= 1 && (
+            <div className="flex flex-1 flex-col items-center justify-center text-center">
+              <div className="mb-5 grid h-16 w-16 place-items-center rounded-3xl bg-slate-950 text-2xl text-white dark:bg-white dark:text-slate-950">
+                ⚡
               </div>
-            </div>
-          ))}
-
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="rounded-3xl rounded-bl-md border border-slate-200 bg-white px-5 py-4 dark:border-white/10 dark:bg-white/10">
-                <div className="flex gap-1.5">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:120ms]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:240ms]" />
-                </div>
-              </div>
+              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                How can I help you today?
+              </h1>
+              <p className="mt-4 max-w-xl leading-7 text-slate-500 dark:text-slate-400">
+                Ask IronChat anything. Responses are formatted with headings, lists, tables, and code blocks when useful.
+              </p>
             </div>
           )}
+
+          <div className="space-y-8">
+            {messages.map((item, index) => (
+              <MessageBubble key={`${item.role}-${index}`} message={item} />
+            ))}
+
+            {isLoading && (
+              <div className="flex gap-4">
+                <Avatar role="assistant" />
+                <div className="pt-2">
+                  <div className="flex gap-1.5">
+                    <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400" />
+                    <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:120ms]" />
+                    <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:240ms]" />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -51,6 +49,54 @@ function ChatWindow({ activeChat, isLoading, message, messages, sendMessage, set
         sendMessage={sendMessage}
         isLoading={isLoading}
       />
+    </div>
+  )
+}
+
+function MessageBubble({ message }) {
+  const isUser = message.role === 'user'
+
+  return (
+    <div className={`flex gap-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
+      {!isUser && <Avatar role="assistant" />}
+
+      <div
+        className={
+          isUser
+            ? 'max-w-[80%] rounded-3xl bg-[#f4f4f4] px-5 py-3 leading-7 text-slate-900 dark:bg-[#2f2f2f] dark:text-white'
+            : 'min-w-0 flex-1 leading-7 text-slate-800 dark:text-slate-100'
+        }
+      >
+        {isUser ? (
+          <p className="whitespace-pre-wrap">{message.content}</p>
+        ) : (
+          <MarkdownMessage content={message.content} />
+        )}
+      </div>
+
+      {isUser && <Avatar role="user" />}
+    </div>
+  )
+}
+
+function Avatar({ role }) {
+  return (
+    <div
+      className={`grid h-8 w-8 flex-none place-items-center rounded-full text-sm font-black ${
+        role === 'user'
+          ? 'bg-cyan-400 text-slate-950'
+          : 'bg-slate-900 text-white dark:bg-white dark:text-slate-950'
+      }`}
+    >
+      {role === 'user' ? 'You'.slice(0, 1) : '⚡'}
+    </div>
+  )
+}
+
+function MarkdownMessage({ content }) {
+  return (
+    <div className="markdown-content">
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
     </div>
   )
 }

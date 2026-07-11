@@ -11,25 +11,22 @@ function Sidebar({ activeChat, chats, onCreateChat, setActiveChat, sidebarOpen, 
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-80 transform flex-col border-r border-slate-200 bg-white p-4 transition duration-300 dark:border-white/10 dark:bg-[#0d111c] lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-72 transform flex-col bg-[#f9f9f9] p-3 text-slate-950 transition duration-300 dark:bg-[#171717] dark:text-white lg:static lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between px-2 py-2">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-cyan-400 font-black text-slate-950">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-950 text-white dark:bg-white dark:text-slate-950">
               ⚡
             </span>
-            <div>
-              <p className="font-black">IronChat</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Chat dashboard</p>
-            </div>
+            <span className="font-bold">IronChat</span>
           </div>
 
           <button
             type="button"
             onClick={() => setSidebarOpen(false)}
-            className="rounded-xl p-2 hover:bg-slate-100 dark:hover:bg-white/10 lg:hidden"
+            className="rounded-lg p-2 hover:bg-slate-200 dark:hover:bg-white/10 lg:hidden"
           >
             ✕
           </button>
@@ -38,15 +35,16 @@ function Sidebar({ activeChat, chats, onCreateChat, setActiveChat, sidebarOpen, 
         <button
           type="button"
           onClick={onCreateChat}
-          className="mt-6 rounded-2xl bg-slate-950 px-4 py-3 font-black text-white transition hover:-translate-y-0.5 dark:bg-cyan-400 dark:text-slate-950"
+          className="mt-3 flex items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition hover:bg-slate-200 dark:hover:bg-white/10"
         >
-          + New Chat
+          <span className="text-lg">＋</span>
+          New chat
         </button>
 
-        <div className="mt-6 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+        <div className="mt-4 min-h-0 flex-1 space-y-1 overflow-y-auto">
           {chats.length === 0 && (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
-              No chats yet. Create your first chat to begin.
+            <div className="rounded-xl px-3 py-3 text-sm text-slate-500 dark:text-slate-400">
+              No chats yet.
             </div>
           )}
 
@@ -58,25 +56,19 @@ function Sidebar({ activeChat, chats, onCreateChat, setActiveChat, sidebarOpen, 
                 setActiveChat(chat)
                 setSidebarOpen(false)
               }}
-              className={`w-full rounded-2xl p-4 text-left transition ${
+              className={`w-full truncate rounded-xl px-3 py-3 text-left text-sm transition ${
                 activeChat?.id === chat.id
-                  ? 'bg-cyan-400/20 ring-1 ring-cyan-400/30'
-                  : 'hover:bg-slate-100 dark:hover:bg-white/10'
+                  ? 'bg-slate-200 font-semibold dark:bg-[#2f2f2f]'
+                  : 'hover:bg-slate-200 dark:hover:bg-white/10'
               }`}
             >
-              <p className="truncate font-black">{chat.title || 'New Chat'}</p>
-              <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">
-                {chat.updated_at ? 'Saved conversation' : 'Ready to start'}
-              </p>
+              {chat.title || 'New Chat'}
             </button>
           ))}
         </div>
 
-        <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
-          <p className="text-sm font-black">Tip</p>
-          <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
-            Ask short, clear questions for better answers.
-          </p>
+        <div className="border-t border-slate-200 px-2 py-3 text-xs text-slate-500 dark:border-white/10 dark:text-slate-400">
+          Markdown supported with headings, lists, tables, and code blocks.
         </div>
       </aside>
     </>
