@@ -16,9 +16,9 @@ function ChatPreview() {
 
           <div className="space-y-4">
             <Bubble text="What is IronChat?" />
-            <Bubble bot text="IronChat is a simple AI chatbot with a beautiful React frontend and a FastAPI backend." />
+            <Bubble bot text="IronChat is a simple AI chatbot with a beautiful and easy-to-use interface." />
             <Bubble text="Can it save messages?" />
-            <Bubble bot text="Yes. The backend is prepared to store sessions and messages in Neon PostgreSQL." />
+            <Bubble bot text="Yes. It is designed to keep conversations organized by session." />
             <div className="w-36 rounded-2xl rounded-bl-md bg-white/10 px-4 py-3">
               <div className="flex gap-1.5">
                 <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-300" />

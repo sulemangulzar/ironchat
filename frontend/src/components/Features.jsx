@@ -1,32 +1,32 @@
 const features = [
   {
-    title: 'Beautiful UI',
-    description: 'A clean landing page with soft colors, rounded cards, and a polished chatbot preview.',
+    title: 'Beautiful interface',
+    description: 'A clean and modern design with soft colors, rounded cards, and a polished chat preview.',
     icon: '✨',
   },
   {
-    title: 'AI backend',
-    description: 'FastAPI connects the frontend with Groq so users can send prompts and receive AI replies.',
+    title: 'Helpful AI replies',
+    description: 'Ask questions, get clear answers, and use the chatbot as a friendly assistant for learning and building.',
     icon: '🤖',
   },
   {
-    title: 'Message storage',
-    description: 'Neon PostgreSQL support is added for saving chat sessions and conversation messages.',
-    icon: '🗄️',
+    title: 'Conversation history',
+    description: 'Chats are organized by session so conversations feel more natural and easy to continue.',
+    icon: '💬',
   },
   {
-    title: 'Responsive design',
-    description: 'The layout works smoothly on mobile, tablet, and desktop screens using Tailwind CSS.',
+    title: 'Responsive layout',
+    description: 'The landing page looks smooth on mobile phones, tablets, and desktop screens.',
     icon: '📱',
   },
   {
     title: 'Dark and light mode',
-    description: 'Users can switch between a modern dark theme and a soft light theme.',
+    description: 'Switch between a calm dark theme and a soft light theme with one click.',
     icon: '🌗',
   },
   {
-    title: 'Beginner friendly',
-    description: 'The frontend is split into simple components so the code is easy to read and extend.',
+    title: 'Simple experience',
+    description: 'The project keeps the user flow focused: open the chatbot, type a message, and get a helpful reply.',
     icon: '🧩',
   },
 ]
@@ -36,9 +36,9 @@ function Features() {
     <section id="features" className="relative z-10 mx-auto max-w-7xl px-5 pb-20 sm:px-8">
       <div className="mx-auto mb-10 max-w-2xl text-center">
         <p className="text-sm font-black uppercase tracking-[0.25em] text-cyan-500">Features</p>
-        <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-5xl">Everything needed for a simple chatbot project.</h2>
+        <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-5xl">Everything needed for a simple chatbot.</h2>
         <p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">
-          IronChat keeps the design simple while still showing important full-stack concepts.
+          IronChat focuses on a beautiful design, helpful responses, and an easy experience.
         </p>
       </div>
 

@@ -18,7 +18,7 @@ function Hero() {
           </h1>
 
           <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">
-            IronChat is a clean full-stack chatbot built with React, Tailwind CSS, FastAPI, Groq, and Neon. It is designed to be beginner-friendly, responsive, and easy to understand.
+            IronChat is a clean AI chatbot made for quick questions, helpful answers, and smooth conversations. It is simple, responsive, and easy to use.
           </p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -36,11 +36,6 @@ function Hero() {
             </a>
           </div>
 
-          <div className="mt-10 grid gap-3 sm:grid-cols-3">
-            <Stat number="React" label="Frontend" />
-            <Stat number="FastAPI" label="Backend" />
-            <Stat number="Neon" label="Database" />
-          </div>
         </div>
 
         <ChatPreview />
@@ -51,13 +46,5 @@ function Hero() {
   )
 }
 
-function Stat({ number, label }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5">
-      <p className="text-lg font-black text-slate-950 dark:text-white">{number}</p>
-      <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">{label}</p>
-    </div>
-  )
-}
 
 export default Hero
