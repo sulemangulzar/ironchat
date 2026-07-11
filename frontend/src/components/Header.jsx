@@ -20,10 +20,17 @@ function Header({ isDark, setIsDark, setPage }) {
         <ThemeToggle isDark={isDark} setIsDark={setIsDark} />
         <button
           type="button"
-          onClick={() => setPage('dashboard')}
-          className="hidden rounded-full bg-slate-950 px-5 py-2.5 text-sm font-bold text-white shadow-xl shadow-slate-900/10 transition hover:-translate-y-0.5 dark:bg-white dark:text-slate-950 sm:block"
+          onClick={() => setPage('login')}
+          className="hidden rounded-full px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-white/70 dark:text-slate-200 dark:hover:bg-white/10 sm:block"
         >
-          Open Chat
+          Login
+        </button>
+        <button
+          type="button"
+          onClick={() => setPage('signup')}
+          className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-bold text-white shadow-xl shadow-slate-900/10 transition hover:-translate-y-0.5 dark:bg-white dark:text-slate-950"
+        >
+          Sign up
         </button>
       </div>
     </header>

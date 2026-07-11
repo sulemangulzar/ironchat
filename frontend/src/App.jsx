@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import AuthPage from './components/AuthPage'
 import Dashboard from './components/Dashboard'
 import Footer from './components/Footer'
 import Header from './components/Header'
@@ -77,6 +78,10 @@ function App() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (page === 'login' || page === 'signup') {
+    return <AuthPage type={page} isDark={isDark} setIsDark={setIsDark} setPage={setPage} />
   }
 
   if (page === 'dashboard') {

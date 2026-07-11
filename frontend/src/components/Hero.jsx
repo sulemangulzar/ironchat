@@ -24,10 +24,10 @@ function Hero({ setPage }) {
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
-              onClick={() => setPage('dashboard')}
+              onClick={() => setPage('signup')}
               className="rounded-2xl bg-cyan-400 px-7 py-4 text-center font-black text-slate-950 shadow-2xl shadow-cyan-500/20 transition hover:-translate-y-1 hover:bg-cyan-300"
             >
-              Open Chat
+              Get Started
             </button>
             <a
               href="#features"
