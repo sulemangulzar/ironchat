@@ -54,8 +54,9 @@ function App() {
       setUser(currentUser)
 
       if (chatList.length > 0) {
-        setChats(chatList)
-        setActiveChat((current) => current || chatList[0])
+        const sortedChats = sortChatsDescending(chatList)
+        setChats(sortedChats)
+        setActiveChat((current) => current || sortedChats[0])
         return
       }
 
@@ -91,6 +92,15 @@ function App() {
       },
     ])
     setPage('landing')
+  }
+
+  const sortChatsDescending = (chatList) => {
+    return [...chatList].sort((firstChat, secondChat) => {
+      const firstDate = new Date(firstChat.updated_at || firstChat.created_at || 0).getTime()
+      const secondDate = new Date(secondChat.updated_at || secondChat.created_at || 0).getTime()
+
+      return secondDate - firstDate
+    })
   }
 
   const formatChatMessages = (chatMessages) => {
@@ -137,7 +147,7 @@ function App() {
 
     try {
       const newChat = await createChat()
-      setChats([newChat, ...chats])
+      setChats((currentChats) => sortChatsDescending([newChat, ...currentChats]))
       setActiveChat(newChat)
       setMessages([
         {
@@ -161,7 +171,7 @@ function App() {
     try {
       const updatedChat = await updateChatTitle(chat.id, title.trim())
       setChats((currentChats) =>
-        currentChats.map((item) => (item.id === chat.id ? updatedChat : item)),
+        sortChatsDescending(currentChats.map((item) => (item.id === chat.id ? updatedChat : item))),
       )
       setActiveChat((current) => (current?.id === chat.id ? updatedChat : current))
     } catch (error) {
@@ -178,7 +188,7 @@ function App() {
 
     try {
       await deleteChat(chat.id)
-      const remainingChats = chats.filter((item) => item.id !== chat.id)
+      const remainingChats = sortChatsDescending(chats.filter((item) => item.id !== chat.id))
       setChats(remainingChats)
 
       if (activeChat?.id === chat.id) {

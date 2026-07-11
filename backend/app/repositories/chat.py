@@ -14,7 +14,9 @@ class ChatRepository:
         return chat
     
     async def get_all_chats(self, user_id : UUID):
-        result = await self.session.exec(select(Chat).where(Chat.user_id == user_id))
+        result = await self.session.exec(
+            select(Chat).where(Chat.user_id == user_id).order_by(Chat.updated_at.desc())
+        )
         return result.all()
 
     async def get_one_chat(self, user_id : UUID, chat_id : UUID):

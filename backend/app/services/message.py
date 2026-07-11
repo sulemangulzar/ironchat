@@ -4,6 +4,7 @@ from app.repositories.message import MessageRepository
 from app.repositories.chat import ChatRepository
 from app.models.message import Role
 from app.core.config import settings
+from datetime import datetime, timezone
 from groq import AsyncGroq
 
 SYSTEM_PROMPT = """
@@ -79,5 +80,7 @@ class MessageService:
                     yield text_chunk
 
             await self.repository.save_message(chat_id, Role.ASSISTANT, full_content)
+            chat.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            await self.chat_repository.update_chat(chat)
 
         return response_generator()
