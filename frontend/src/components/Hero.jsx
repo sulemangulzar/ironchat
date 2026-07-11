@@ -2,6 +2,10 @@ import ChatPreview from './ChatPreview'
 import Features from './Features'
 
 function Hero({ setPage }) {
+  const scrollToFeatures = () => {
+    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <main id="home" className="relative overflow-hidden bg-white dark:bg-[#212121]">
       <div className="absolute left-1/2 top-10 h-80 w-80 -translate-x-1/2 rounded-full bg-cyan-400/10 blur-3xl dark:bg-cyan-400/10" />
@@ -29,12 +33,13 @@ function Hero({ setPage }) {
             >
               Get Started
             </button>
-            <a
-              href="#features"
+            <button
+              type="button"
+              onClick={scrollToFeatures}
               className="rounded-2xl border border-slate-200 bg-white px-7 py-4 text-center font-bold text-slate-800 transition hover:-translate-y-1 hover:bg-slate-50 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
             >
               Explore Features
-            </a>
+            </button>
           </div>
         </div>
 

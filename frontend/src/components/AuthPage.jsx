@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Logo from './Logo'
 import ThemeToggle from './ThemeToggle'
 
-function AuthPage({ type, isDark, setIsDark, setPage, onAuth }) {
+function AuthPage({ type, isDark, setIsDark, setPage, onAuth, onToast }) {
   const isSignup = type === 'signup'
   const [form, setForm] = useState({ username: '', email: '', password: '' })
   const [error, setError] = useState('')
@@ -20,7 +20,13 @@ function AuthPage({ type, isDark, setIsDark, setPage, onAuth }) {
     try {
       await onAuth(type, form)
     } catch (authError) {
-      setError(authError.message || 'Authentication failed. Please try again.')
+      const errorMessage = authError.message || 'Authentication failed. Please try again.'
+      setError(errorMessage)
+      onToast?.({
+        type: 'error',
+        title: isSignup ? 'Signup failed' : 'Login failed',
+        message: errorMessage,
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -67,7 +73,10 @@ function AuthPage({ type, isDark, setIsDark, setPage, onAuth }) {
               {isSignup ? 'Sign up to open the chat dashboard.' : 'Login to continue to the dashboard.'}
             </p>
 
-            <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
+            {isSubmitting ? (
+              <AuthLoadingSkeleton />
+            ) : (
+              <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
               {isSignup && (
                 <FormInput
                   label="Full name"
@@ -107,7 +116,8 @@ function AuthPage({ type, isDark, setIsDark, setPage, onAuth }) {
               >
                 {isSubmitting ? 'Please wait...' : isSignup ? 'Sign up and open dashboard' : 'Login and open dashboard'}
               </button>
-            </form>
+              </form>
+            )}
 
             <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-300">
               {isSignup ? 'Already have an account?' : 'Need an account?'}{' '}
@@ -123,6 +133,20 @@ function AuthPage({ type, isDark, setIsDark, setPage, onAuth }) {
         </div>
       </section>
     </main>
+  )
+}
+
+function AuthLoadingSkeleton() {
+  return (
+    <div className="mt-8 space-y-4 animate-pulse" aria-label="Authenticating">
+      <div className="h-12 rounded-2xl bg-slate-100 dark:bg-[#212121]" />
+      <div className="h-12 rounded-2xl bg-slate-100 dark:bg-[#212121]" />
+      <div className="h-12 rounded-2xl bg-slate-100 dark:bg-[#212121]" />
+      <div className="h-14 rounded-2xl bg-slate-950/15 dark:bg-white/15" />
+      <p className="text-center text-sm font-semibold text-slate-500 dark:text-slate-400">
+        Preparing your dashboard...
+      </p>
+    </div>
   )
 }
 

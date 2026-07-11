@@ -2,17 +2,21 @@ import Logo from './Logo'
 import ThemeToggle from './ThemeToggle'
 
 function Header({ isDark, setIsDark, setPage }) {
+  const scrollToSection = (sectionId) => {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/85 backdrop-blur dark:border-white/10 dark:bg-[#212121]/90">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
-        <a href="#home" className="flex items-center gap-3">
+        <button type="button" onClick={() => setPage('landing')} className="flex items-center gap-3">
           <Logo size="md" showText />
-        </a>
+        </button>
 
         <nav className="hidden items-center gap-8 text-sm font-semibold text-slate-600 dark:text-slate-300 md:flex">
-          <a href="#features" className="transition hover:text-cyan-600 dark:hover:text-cyan-300">Features</a>
-          <a href="#preview" className="transition hover:text-cyan-600 dark:hover:text-cyan-300">Preview</a>
-          <a href="#about" className="transition hover:text-cyan-600 dark:hover:text-cyan-300">About</a>
+          <button type="button" onClick={() => scrollToSection('features')} className="transition hover:text-cyan-600 dark:hover:text-cyan-300">Features</button>
+          <button type="button" onClick={() => scrollToSection('preview')} className="transition hover:text-cyan-600 dark:hover:text-cyan-300">Preview</button>
+          <button type="button" onClick={() => scrollToSection('about')} className="transition hover:text-cyan-600 dark:hover:text-cyan-300">About</button>
         </nav>
 
         <div className="flex items-center gap-2">

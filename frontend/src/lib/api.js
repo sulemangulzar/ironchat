@@ -1,4 +1,4 @@
-import { clearTokens, getAccessToken, saveTokens } from './storage'
+import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from './storage'
 
 export const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8001').replace(/\/$/, '')
 
@@ -11,22 +11,70 @@ async function readError(response) {
   }
 }
 
-async function request(path, options = {}) {
+async function refreshAccessToken() {
+  const refreshToken = getRefreshToken()
+
+  if (!refreshToken) {
+    clearTokens()
+    return null
+  }
+
+  const response = await fetch(`${API_URL}/auth/v1/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh_token: refreshToken }),
+  })
+
+  if (!response.ok) {
+    clearTokens()
+    return null
+  }
+
+  const tokens = await response.json()
+  saveTokens(tokens)
+  return tokens.access_token
+}
+
+function buildHeaders(options = {}, token = getAccessToken()) {
   const headers = new Headers(options.headers)
 
   if (!(options.body instanceof FormData) && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
 
-  const token = getAccessToken()
   if (token) {
     headers.set('Authorization', `Bearer ${token}`)
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
+  return headers
+}
+
+async function fetchWithAuth(path, options = {}) {
+  let response = await fetch(`${API_URL}${path}`, {
     ...options,
-    headers,
+    headers: buildHeaders(options),
   })
+
+  if (response.status !== 401) {
+    return response
+  }
+
+  const newAccessToken = await refreshAccessToken()
+
+  if (!newAccessToken) {
+    return response
+  }
+
+  response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: buildHeaders(options, newAccessToken),
+  })
+
+  return response
+}
+
+async function request(path, options = {}) {
+  const response = await fetchWithAuth(path, options)
 
   if (!response.ok) {
     if (response.status === 401) {
@@ -93,13 +141,8 @@ export function getChatMessages(chatId) {
 }
 
 export async function sendChatMessage(chatId, content, onChunk) {
-  const token = getAccessToken()
-  const response = await fetch(`${API_URL}/chat/${chatId}/message`, {
+  const response = await fetchWithAuth(`/chat/${chatId}/message`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
     body: JSON.stringify({ content }),
   })
 

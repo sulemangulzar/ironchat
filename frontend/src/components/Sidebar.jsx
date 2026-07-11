@@ -3,6 +3,8 @@ import Logo from './Logo'
 function Sidebar({
   activeChat,
   chats,
+  isActionLoading,
+  isDashboardLoading,
   onCreateChat,
   onDeleteChat,
   onUpdateChatTitle,
@@ -41,20 +43,23 @@ function Sidebar({
         <button
           type="button"
           onClick={onCreateChat}
-          className="mt-3 flex items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition hover:bg-slate-200 dark:hover:bg-white/10"
+          disabled={isActionLoading || isDashboardLoading}
+          className="mt-3 flex items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-white/10"
         >
-          <span className="text-lg">＋</span>
-          New chat
+          <span className="text-lg">{isActionLoading ? '…' : '＋'}</span>
+          {isActionLoading ? 'Working...' : 'New chat'}
         </button>
 
         <div className="mt-4 min-h-0 flex-1 space-y-1 overflow-y-auto">
-          {chats.length === 0 && (
+          {isDashboardLoading && <SidebarSkeleton />}
+
+          {!isDashboardLoading && chats.length === 0 && (
             <div className="rounded-xl px-3 py-3 text-sm text-slate-500 dark:text-slate-400">
               No chats yet.
             </div>
           )}
 
-          {chats.map((chat) => (
+          {!isDashboardLoading && chats.map((chat) => (
             <div
               key={chat.id}
               className={`group flex items-center gap-1 rounded-xl pr-1 transition ${
@@ -66,7 +71,8 @@ function Sidebar({
               <button
                 type="button"
                 onClick={() => onSelectChat(chat)}
-                className="min-w-0 flex-1 truncate px-3 py-3 text-left text-sm"
+                disabled={isActionLoading}
+                className="min-w-0 flex-1 truncate px-3 py-3 text-left text-sm disabled:cursor-not-allowed"
               >
                 {chat.title || 'New Chat'}
               </button>
@@ -78,7 +84,8 @@ function Sidebar({
                   event.stopPropagation()
                   onUpdateChatTitle(chat)
                 }}
-                className="flex-none rounded-lg px-2 py-1 text-xs text-slate-500 opacity-0 transition hover:bg-white hover:text-slate-950 group-hover:opacity-100 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
+                disabled={isActionLoading}
+                className="flex-none rounded-lg px-2 py-1 text-xs text-slate-500 opacity-0 transition hover:bg-white hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-30 group-hover:opacity-100 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
               >
                 ✎
               </button>
@@ -90,7 +97,8 @@ function Sidebar({
                   event.stopPropagation()
                   onDeleteChat(chat)
                 }}
-                className="flex-none rounded-lg px-2 py-1 text-xs text-red-500 opacity-0 transition hover:bg-red-50 group-hover:opacity-100 dark:hover:bg-red-500/10"
+                disabled={isActionLoading}
+                className="flex-none rounded-lg px-2 py-1 text-xs text-red-500 opacity-0 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-30 group-hover:opacity-100 dark:hover:bg-red-500/10"
               >
                 🗑
               </button>
@@ -103,6 +111,19 @@ function Sidebar({
         </div>
       </aside>
     </>
+  )
+}
+
+function SidebarSkeleton() {
+  return (
+    <div className="space-y-2 animate-pulse" aria-label="Loading chats">
+      {Array.from({ length: 7 }).map((_, index) => (
+        <div key={index} className="flex items-center gap-2 rounded-xl px-3 py-3">
+          <div className="h-4 flex-1 rounded-full bg-slate-200 dark:bg-[#2f2f2f]" />
+          <div className="h-4 w-8 rounded-full bg-slate-200 dark:bg-[#2f2f2f]" />
+        </div>
+      ))}
+    </div>
   )
 }
 

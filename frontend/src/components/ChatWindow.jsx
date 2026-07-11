@@ -3,7 +3,7 @@ import remarkGfm from 'remark-gfm'
 import Logo from './Logo'
 import MessageInput from './MessageInput'
 
-function ChatWindow({ activeChat, isChatLoading, isLoading, message, messages, sendMessage, setMessage }) {
+function ChatWindow({ activeChat, isActionLoading, isChatLoading, isLoading, message, messages, sendMessage, setMessage }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white text-slate-950 dark:bg-[#212121] dark:text-white">
       <div className="min-h-0 flex-1 overflow-y-auto">
@@ -48,7 +48,7 @@ function ChatWindow({ activeChat, isChatLoading, isLoading, message, messages, s
       </div>
 
       <MessageInput
-        disabled={!activeChat || isChatLoading}
+        disabled={!activeChat || isChatLoading || isActionLoading}
         message={message}
         setMessage={setMessage}
         sendMessage={sendMessage}

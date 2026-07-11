@@ -1,6 +1,7 @@
 from uuid import UUID
 from sqlmodel import select
 from app.models import Chat
+from app.models.message import Message
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 class ChatRepository:
@@ -28,6 +29,11 @@ class ChatRepository:
         return chat
 
     async def delete_chat(self, chat: Chat):
+        messages = await self.session.exec(select(Message).where(Message.chat_id == chat.id))
+
+        for message in messages.all():
+            await self.session.delete(message)
+
         await self.session.delete(chat)
         await self.session.commit()
 

@@ -7,7 +7,9 @@ function Dashboard({
   appError,
   chats,
   isDark,
+  isActionLoading,
   isChatLoading,
+  isDashboardLoading,
   isLoading,
   message,
   messages,
@@ -29,6 +31,8 @@ function Dashboard({
       <Sidebar
         activeChat={activeChat}
         chats={chats}
+        isActionLoading={isActionLoading}
+        isDashboardLoading={isDashboardLoading}
         onCreateChat={onCreateChat}
         onDeleteChat={onDeleteChat}
         onUpdateChatTitle={onUpdateChatTitle}
@@ -48,20 +52,26 @@ function Dashboard({
               ☰
             </button>
             <div className="flex min-w-0 items-center gap-2">
-              <h1 className="truncate text-base font-semibold">{activeChat?.title || 'IronChat'}</h1>
-              {activeChat && (
+              {isDashboardLoading ? (
+                <div className="h-5 w-36 animate-pulse rounded-full bg-slate-200 dark:bg-[#2f2f2f]" />
+              ) : (
+                <h1 className="truncate text-base font-semibold">{activeChat?.title || 'IronChat'}</h1>
+              )}
+              {activeChat && !isDashboardLoading && (
                 <div className="flex flex-none items-center gap-1">
                   <button
                     type="button"
                     onClick={() => onUpdateChatTitle(activeChat)}
-                    className="rounded-lg px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
+                    disabled={isActionLoading}
+                    className="rounded-lg px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
                   >
                     Edit
                   </button>
                   <button
                     type="button"
                     onClick={() => onDeleteChat(activeChat)}
-                    className="rounded-lg px-2 py-1 text-xs font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                    disabled={isActionLoading}
+                    className="rounded-lg px-2 py-1 text-xs font-semibold text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-red-500/10"
                   >
                     Delete
                   </button>
@@ -72,7 +82,7 @@ function Dashboard({
 
           <div className="flex items-center gap-2">
             <span className="hidden max-w-44 truncate text-sm text-slate-500 dark:text-slate-400 sm:block">
-              {user?.username || 'Workspace'}
+              {isDashboardLoading ? 'Loading workspace...' : user?.username || 'Workspace'}
             </span>
             <ThemeToggle isDark={isDark} setIsDark={setIsDark} />
             <button
@@ -100,7 +110,8 @@ function Dashboard({
 
         <ChatWindow
           activeChat={activeChat}
-          isChatLoading={isChatLoading}
+          isActionLoading={isActionLoading}
+          isChatLoading={isDashboardLoading || isChatLoading}
           isLoading={isLoading}
           message={message}
           messages={messages}

@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import AuthPage from './components/AuthPage'
+import ChatActionModal from './components/ChatActionModal'
 import Dashboard from './components/Dashboard'
 import Footer from './components/Footer'
 import Header from './components/Header'
 import Hero from './components/Hero'
+import ToastContainer from './components/ToastContainer'
 import {
   clearActiveChatId,
   clearTokens,
@@ -33,6 +35,21 @@ const sortChatsDescending = (chatList) => {
   })
 }
 
+const pageRoutes = {
+  landing: '/',
+  login: '/login',
+  signup: '/signup',
+  dashboard: '/dashboard',
+}
+
+const getPageFromPath = () => {
+  if (window.location.pathname === pageRoutes.login) return 'login'
+  if (window.location.pathname === pageRoutes.signup) return 'signup'
+  if (window.location.pathname === pageRoutes.dashboard) return hasSession() ? 'dashboard' : 'login'
+
+  return 'landing'
+}
+
 const formatChatMessages = (chatMessages) => {
   if (chatMessages.length === 0) {
     return [
@@ -50,7 +67,7 @@ const formatChatMessages = (chatMessages) => {
 }
 
 function App() {
-  const [page, setPage] = useState(hasSession() ? 'dashboard' : 'landing')
+  const [page, setPage] = useState(getPageFromPath)
   const [isDark, setIsDark] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeChat, setActiveChat] = useState(null)
@@ -64,15 +81,64 @@ function App() {
   ])
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isDashboardLoading, setIsDashboardLoading] = useState(false)
   const [isChatLoading, setIsChatLoading] = useState(false)
+  const [isActionLoading, setIsActionLoading] = useState(false)
   const [appError, setAppError] = useState('')
+  const [toasts, setToasts] = useState([])
+  const [chatAction, setChatAction] = useState(null)
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark)
   }, [isDark])
 
-  const loadDashboard = useCallback(async () => {
+  const navigate = useCallback((nextPage, options = {}) => {
+    const nextPath = pageRoutes[nextPage] || pageRoutes.landing
+    const historyAction = options.replace ? 'replaceState' : 'pushState'
+
+    if (window.location.pathname !== nextPath) {
+      window.history[historyAction](null, '', nextPath)
+    }
+
+    setPage(nextPage)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setPage(getPageFromPath())
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  useEffect(() => {
+    if (window.location.pathname === pageRoutes.dashboard && !hasSession()) {
+      navigate('login', { replace: true })
+    }
+  }, [navigate])
+
+  const showToast = useCallback((toast) => {
+    const id = crypto.randomUUID()
+    setToasts((currentToasts) => [...currentToasts, { id, type: 'info', ...toast }])
+
+    window.setTimeout(() => {
+      setToasts((currentToasts) => currentToasts.filter((item) => item.id !== id))
+    }, 3500)
+  }, [])
+
+  const dismissToast = useCallback((toastId) => {
+    setToasts((currentToasts) => currentToasts.filter((item) => item.id !== toastId))
+  }, [])
+
+  const loadDashboard = useCallback(async ({ showLoader = true } = {}) => {
     setAppError('')
+
+    if (showLoader) {
+      setIsDashboardLoading(true)
+      setIsChatLoading(true)
+    }
 
     try {
       const [currentUser, chatList] = await Promise.all([getCurrentUser(), getChats()])
@@ -97,12 +163,23 @@ function App() {
       setActiveChat(firstChat)
       saveActiveChatId(firstChat.id)
     } catch (error) {
-      setAppError(error.message || 'Could not load dashboard.')
+      const errorMessage = error.message || 'Could not load dashboard.'
+      setAppError(errorMessage)
+      showToast({
+        type: 'error',
+        title: 'Dashboard failed to load',
+        message: errorMessage,
+      })
       if (!hasSession()) {
-        setPage('login')
+        navigate('login', { replace: true })
+      }
+    } finally {
+      if (showLoader) {
+        setIsDashboardLoading(false)
+        setIsChatLoading(false)
       }
     }
-  }, [])
+  }, [navigate, showToast])
 
   useEffect(() => {
     if (page === 'dashboard' && hasSession()) {
@@ -116,7 +193,12 @@ function App() {
     }
 
     await loginUser({ email: form.email, password: form.password })
-    setPage('dashboard')
+    showToast({
+      type: 'success',
+      title: type === 'signup' ? 'Account created' : 'Welcome back',
+      message: 'Opening your IronChat dashboard.',
+    })
+    navigate('dashboard')
   }
 
   const handleLogout = () => {
@@ -131,7 +213,12 @@ function App() {
         content: 'Welcome to IronChat. Login, start a chat, and ask me anything.',
       },
     ])
-    setPage('landing')
+    navigate('landing')
+    showToast({
+      type: 'success',
+      title: 'Logged out',
+      message: 'You have safely left your dashboard.',
+    })
   }
 
   const handleSelectChat = async (chat) => {
@@ -152,14 +239,23 @@ function App() {
       const chatMessages = await getChatMessages(chat.id)
       setMessages(formatChatMessages(chatMessages))
     } catch (error) {
-      setAppError(error.message || 'Could not load chat messages.')
+      const errorMessage = error.message || 'Could not load chat messages.'
+      setAppError(errorMessage)
+      showToast({
+        type: 'error',
+        title: 'Chat failed to load',
+        message: errorMessage,
+      })
     } finally {
       setIsChatLoading(false)
     }
   }
 
   const handleCreateChat = async () => {
+    if (isActionLoading) return
+
     setAppError('')
+    setIsActionLoading(true)
 
     try {
       const newChat = await createChat()
@@ -173,17 +269,36 @@ function App() {
         },
       ])
       setSidebarOpen(false)
+      showToast({
+        type: 'success',
+        title: 'New chat created',
+        message: 'Your new conversation is ready.',
+      })
     } catch (error) {
-      setAppError(error.message || 'Could not create chat.')
+      const errorMessage = error.message || 'Could not create chat.'
+      setAppError(errorMessage)
+      showToast({
+        type: 'error',
+        title: 'Could not create chat',
+        message: errorMessage,
+      })
+    } finally {
+      setIsActionLoading(false)
     }
   }
 
-  const handleUpdateChatTitle = async (chat) => {
-    const title = window.prompt('Update chat title', chat.title || 'New Chat')
+  const handleUpdateChatTitle = (chat) => {
+    if (isActionLoading) return
+    setChatAction({ type: 'edit', chat })
+  }
 
-    if (!title?.trim()) return
+  const confirmUpdateChatTitle = async (title) => {
+    if (!chatAction?.chat || isActionLoading) return
+
+    const chat = chatAction.chat
 
     setAppError('')
+    setIsActionLoading(true)
 
     try {
       const updatedChat = await updateChatTitle(chat.id, title.trim())
@@ -191,17 +306,37 @@ function App() {
         sortChatsDescending(currentChats.map((item) => (item.id === chat.id ? updatedChat : item))),
       )
       setActiveChat((current) => (current?.id === chat.id ? updatedChat : current))
+      setChatAction(null)
+      showToast({
+        type: 'success',
+        title: 'Title updated',
+        message: 'Your chat title was saved.',
+      })
     } catch (error) {
-      setAppError(error.message || 'Could not update chat title.')
+      const errorMessage = error.message || 'Could not update chat title.'
+      setAppError(errorMessage)
+      showToast({
+        type: 'error',
+        title: 'Could not update title',
+        message: errorMessage,
+      })
+    } finally {
+      setIsActionLoading(false)
     }
   }
 
-  const handleDeleteChat = async (chat) => {
-    const shouldDelete = window.confirm(`Delete "${chat.title || 'New Chat'}"?`)
+  const handleDeleteChat = (chat) => {
+    if (isActionLoading) return
+    setChatAction({ type: 'delete', chat })
+  }
 
-    if (!shouldDelete) return
+  const confirmDeleteChat = async () => {
+    if (!chatAction?.chat || isActionLoading) return
+
+    const chat = chatAction.chat
 
     setAppError('')
+    setIsActionLoading(true)
 
     try {
       await deleteChat(chat.id)
@@ -233,13 +368,27 @@ function App() {
           ])
         }
       }
+      setChatAction(null)
+      showToast({
+        type: 'success',
+        title: 'Chat deleted',
+        message: 'The conversation was removed.',
+      })
     } catch (error) {
-      setAppError(error.message || 'Could not delete chat.')
+      const errorMessage = error.message || 'Could not delete chat.'
+      setAppError(errorMessage)
+      showToast({
+        type: 'error',
+        title: 'Could not delete chat',
+        message: errorMessage,
+      })
+    } finally {
+      setIsActionLoading(false)
     }
   }
 
   const sendMessage = async () => {
-    if (!message.trim() || isLoading || isChatLoading || !activeChat) return
+    if (!message.trim() || isLoading || isChatLoading || isActionLoading || !activeChat) return
 
     const userMessage = { role: 'user', content: message.trim() }
     const assistantMessage = { role: 'assistant', content: '' }
@@ -255,64 +404,88 @@ function App() {
         setMessages([...nextMessages.slice(0, -1), { role: 'assistant', content: fullText }])
       })
     } catch (error) {
+      const errorMessage = error.message || 'I could not reach the backend. Please check your deployment.'
       setMessages([
         ...nextMessages.slice(0, -1),
         {
           role: 'assistant',
-          content: error.message || 'I could not reach the backend. Please check your deployment.',
+          content: errorMessage,
         },
       ])
+      showToast({
+        type: 'error',
+        title: 'Message failed',
+        message: errorMessage,
+      })
     } finally {
       setIsLoading(false)
-      loadDashboard()
+      loadDashboard({ showLoader: false })
     }
   }
 
   if (page === 'login' || page === 'signup') {
     return (
-      <AuthPage
-        type={page}
-        isDark={isDark}
-        setIsDark={setIsDark}
-        setPage={setPage}
-        onAuth={handleAuth}
-      />
+      <>
+        <AuthPage
+          type={page}
+          isDark={isDark}
+          setIsDark={setIsDark}
+          setPage={navigate}
+          onAuth={handleAuth}
+          onToast={showToast}
+        />
+        <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      </>
     )
   }
 
   if (page === 'dashboard') {
     return (
-      <Dashboard
-        activeChat={activeChat}
-        appError={appError}
-        chats={chats}
-        isDark={isDark}
-        isChatLoading={isChatLoading}
-        isLoading={isLoading}
-        message={message}
-        messages={messages}
-        onCreateChat={handleCreateChat}
-        onDeleteChat={handleDeleteChat}
-        onLogout={handleLogout}
-        onUpdateChatTitle={handleUpdateChatTitle}
-        sendMessage={sendMessage}
-        onSelectChat={handleSelectChat}
-        setIsDark={setIsDark}
-        setMessage={setMessage}
-        setPage={setPage}
-        setSidebarOpen={setSidebarOpen}
-        sidebarOpen={sidebarOpen}
-        user={user}
-      />
+      <>
+        <Dashboard
+          activeChat={activeChat}
+          appError={appError}
+          chats={chats}
+          isDark={isDark}
+          isActionLoading={isActionLoading}
+          isChatLoading={isChatLoading}
+          isDashboardLoading={isDashboardLoading}
+          isLoading={isLoading}
+          message={message}
+          messages={messages}
+          onCreateChat={handleCreateChat}
+          onDeleteChat={handleDeleteChat}
+          onLogout={handleLogout}
+          onUpdateChatTitle={handleUpdateChatTitle}
+          sendMessage={sendMessage}
+          onSelectChat={handleSelectChat}
+          setIsDark={setIsDark}
+          setMessage={setMessage}
+          setPage={navigate}
+          setSidebarOpen={setSidebarOpen}
+          sidebarOpen={sidebarOpen}
+          user={user}
+        />
+        <ChatActionModal
+          action={chatAction}
+          isLoading={isActionLoading}
+          onClose={() => setChatAction(null)}
+          onConfirm={chatAction?.type === 'delete' ? confirmDeleteChat : confirmUpdateChatTitle}
+        />
+        <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      </>
     )
   }
 
   return (
-    <div className="min-h-screen bg-white text-slate-950 transition-colors duration-300 dark:bg-[#212121] dark:text-white">
-      <Header isDark={isDark} setIsDark={setIsDark} setPage={setPage} />
-      <Hero setPage={setPage} />
-      <Footer />
-    </div>
+    <>
+      <div className="min-h-screen bg-white text-slate-950 transition-colors duration-300 dark:bg-[#212121] dark:text-white">
+        <Header isDark={isDark} setIsDark={setIsDark} setPage={navigate} />
+        <Hero setPage={navigate} />
+        <Footer />
+      </div>
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+    </>
   )
 }
 
