@@ -17,6 +17,10 @@ GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
 
 @router.get("/google")
 async def google_login(redirect: str | None = None):
+    if not settings.GOOGLE_CLIENT_ID:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail="Google OAuth is not configured on this server.")
+
     state = base64.urlsafe_b64encode((redirect or "/dashboard").encode()).decode()
 
     params = {
