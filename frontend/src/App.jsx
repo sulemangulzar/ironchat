@@ -44,6 +44,17 @@ const pageRoutes = {
 }
 
 const getPageFromPath = () => {
+  // Handle OAuth redirect — tokens arrive as URL params before first render
+  const params = new URLSearchParams(window.location.search)
+  const accessToken = params.get('access_token')
+  const refreshToken = params.get('refresh_token')
+
+  if (accessToken && refreshToken) {
+    saveTokens({ access_token: accessToken, refresh_token: refreshToken })
+    window.history.replaceState(null, '', pageRoutes.dashboard)
+    return 'dashboard'
+  }
+
   if (window.location.pathname === pageRoutes.login) return 'login'
   if (window.location.pathname === pageRoutes.signup) return 'signup'
   if (window.location.pathname === pageRoutes.dashboard) return hasSession() ? 'dashboard' : 'login'
@@ -119,18 +130,6 @@ function App() {
       navigate('login', { replace: true })
     }
   }, [navigate])
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const accessToken = params.get('access_token')
-    const refreshToken = params.get('refresh_token')
-
-    if (accessToken && refreshToken) {
-      saveTokens({ access_token: accessToken, refresh_token: refreshToken })
-      window.history.replaceState(null, '', pageRoutes.dashboard)
-      setPage('dashboard')
-    }
-  }, [])
 
   const showToast = useCallback((toast) => {
     const id = crypto.randomUUID()
