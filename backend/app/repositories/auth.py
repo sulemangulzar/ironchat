@@ -1,4 +1,5 @@
 from app.models.refresh_token import RefreshToken
+from app.models.oauth_account import OAuthAccount
 from app.schemas.auth import CreateUser
 from sqlmodel import select
 from sqlalchemy import UUID
@@ -11,6 +12,10 @@ class UserRepository:
     
     async def get_by_email(self, email : str):
         result = await self.session.exec(select(User).where(User.email == email))
+        return result.first()
+
+    async def get_by_username(self, username: str):
+        result = await self.session.exec(select(User).where(User.username == username))
         return result.first()
 
     async def get_by_id(self, id : UUID):
@@ -53,3 +58,24 @@ class UserRepository:
     async def delete(self, user: User):
         await self.session.delete(user)
         await self.session.commit()
+
+    async def get_oauth_account_by_account_id(self, oauth_name: str, account_id: str):
+        result = await self.session.exec(
+            select(OAuthAccount).where(
+                OAuthAccount.oauth_name == oauth_name,
+                OAuthAccount.account_id == account_id,
+            )
+        )
+        return result.first()
+
+    async def create_oauth_account(self, oauth_account: OAuthAccount):
+        self.session.add(oauth_account)
+        await self.session.commit()
+        await self.session.refresh(oauth_account)
+        return oauth_account
+
+    async def update_oauth_account(self, oauth_account: OAuthAccount):
+        self.session.add(oauth_account)
+        await self.session.commit()
+        await self.session.refresh(oauth_account)
+        return oauth_account

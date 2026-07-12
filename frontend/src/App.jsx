@@ -12,6 +12,7 @@ import {
   getActiveChatId,
   hasSession,
   saveActiveChatId,
+  saveTokens,
 } from './lib/storage'
 import {
   createChat,
@@ -118,6 +119,18 @@ function App() {
       navigate('login', { replace: true })
     }
   }, [navigate])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const accessToken = params.get('access_token')
+    const refreshToken = params.get('refresh_token')
+
+    if (accessToken && refreshToken) {
+      saveTokens({ access_token: accessToken, refresh_token: refreshToken })
+      window.history.replaceState(null, '', pageRoutes.dashboard)
+      setPage('dashboard')
+    }
+  }, [])
 
   const showToast = useCallback((toast) => {
     const id = crypto.randomUUID()

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { API_URL } from '../lib/api'
 import Logo from './Logo'
 import ThemeToggle from './ThemeToggle'
 
@@ -118,6 +119,27 @@ function AuthPage({ type, isDark, setIsDark, setPage, onAuth, onToast }) {
               </button>
               </form>
             )}
+
+            <div className="mt-5">
+              <div className="relative flex items-center">
+                <div className="flex-1 border-t border-slate-200 dark:border-white/10" />
+                <span className="mx-4 text-xs font-semibold text-slate-400 dark:text-slate-500">or</span>
+                <div className="flex-1 border-t border-slate-200 dark:border-white/10" />
+              </div>
+
+              <a
+                href={`${API_URL}/auth/v1/google`}
+                className="mt-4 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
+              >
+                <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
+                  <path d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34.3 6.7 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z" fill="#FFC107"/>
+                  <path d="M6.3 14.7l6.6 4.8C14.7 16 19.1 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34.3 6.7 29.4 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" fill="#FF3D00"/>
+                  <path d="M24 44c5.2 0 9.9-1.9 13.5-5.1l-6.2-5.3C29.4 35.5 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8H6.4C9.7 35.6 16.3 44 24 44z" fill="#4CAF50"/>
+                  <path d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.5l6.2 5.3C37.3 39.1 44 34.3 44 24c0-1.2-.1-2.4-.4-3.5z" fill="#1976D2"/>
+                </svg>
+                Continue with Google
+              </a>
+            </div>
 
             <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-300">
               {isSignup ? 'Already have an account?' : 'Need an account?'}{' '}

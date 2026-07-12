@@ -2,13 +2,17 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     GROQ_API_KEY : str
-    ALLOWED_ORIGINS : str 
+    ALLOWED_ORIGINS : str
     DATABASE_URL : str
-    CLIENT_ID : str
-    CLIENT_SECRET : str
-    REDIRECT_URI : str
+    CLIENT_ID : str = ""
+    CLIENT_SECRET : str = ""
+    REDIRECT_URI : str = ""
+    GOOGLE_CLIENT_ID : str = ""
+    GOOGLE_CLIENT_SECRET : str = ""
+    GOOGLE_REDIRECT_URI : str = ""
+    FRONTEND_URL : str = "http://localhost:5173"
     APP_NAME : str = "IronChat"
-    ALGORITHM : str 
+    ALGORITHM : str
     SECRET_KEY : str
     ACCESS_TOKEN_EXPIRE_MINUTES : int
     REFRESH_TOKEN_EXPIRE_DAYS : int
