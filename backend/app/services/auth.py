@@ -1,16 +1,18 @@
 from app.utils.exceptions import InvalidToken
-from app.core.security import create_refresh_token
-from app.core.security import create_access_token
-from app.utils.exceptions import LoginException
-from app.core.security import verify_hash
-from pydantic import EmailStr
-from app.utils.exceptions import UserAlreadyExists
+from app.core.security import (
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+    get_hash,
+    hash_token,
+    verify_hash,
+    verify_token_hash,
+)
+from app.utils.exceptions import LoginException, UserAlreadyExists
 from app.models import User
 import asyncio
-from app.core.security import get_hash
 from app.schemas.auth import CreateUser
 from app.repositories.auth import UserRepository
-from app.core.security import decode_token
 from uuid import UUID
 from datetime import datetime, timezone, timedelta
 from app.core.config import settings
@@ -47,21 +49,21 @@ class UserService:
         access_token = create_access_token({"sub": str(user.id)})
         refresh_token = create_refresh_token({"sub": str(user.id)})
         
-        hashed_rt = await asyncio.to_thread(get_hash, refresh_token)
+        hashed_rt = hash_token(refresh_token)
         expires_dt = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
-        
+
         db_rt = RefreshToken(
             token=hashed_rt,
             expires_at=int(expires_dt.timestamp()),
-            user_id=user.id
+            user_id=user.id,
         )
         await self.repositroy.save_refresh_token(db_rt)
 
         return {
-            "access_token" : access_token,
-            "refresh_token" : refresh_token,
-            "token_type": "bearer"
-         }
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+        }
 
     async def refresh_token(self, old_refresh_token: str):
         
@@ -84,11 +86,18 @@ class UserService:
 
         db_tokens = await self.repositroy.get_refresh_tokens_by_user(user_id)
         valid_db_token = None
+        incoming_hash = hash_token(old_refresh_token)
         for t in db_tokens:
-            is_valid = await asyncio.to_thread(verify_hash, old_refresh_token, t.token)
-            if is_valid:
+            if verify_token_hash(old_refresh_token, t.token):
                 valid_db_token = t
                 break
+            # backward compat: old tokens were stored as bcrypt hashes
+            try:
+                if verify_hash(old_refresh_token, t.token):
+                    valid_db_token = t
+                    break
+            except Exception:
+                pass
         
         if not valid_db_token:
             raise InvalidToken()
@@ -103,12 +112,12 @@ class UserService:
         new_access_token = create_access_token({"sub": str(user.id)})
         new_refresh_token = create_refresh_token({"sub": str(user.id)})
 
-        hashed_rt = await asyncio.to_thread(get_hash, new_refresh_token)
+        hashed_rt = hash_token(new_refresh_token)
         expires_dt = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
         db_rt = RefreshToken(
             token=hashed_rt,
             expires_at=int(expires_dt.timestamp()),
-            user_id=user.id
+            user_id=user.id,
         )
         await self.repositroy.save_refresh_token(db_rt)
 
@@ -178,7 +187,7 @@ class UserService:
         access_token = create_access_token({"sub": str(user.id)})
         refresh_token = create_refresh_token({"sub": str(user.id)})
 
-        hashed_rt = await asyncio.to_thread(get_hash, refresh_token)
+        hashed_rt = hash_token(refresh_token)
         expires_dt = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
         db_rt = RefreshToken(
             token=hashed_rt,

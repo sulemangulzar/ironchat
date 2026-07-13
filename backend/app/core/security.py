@@ -1,17 +1,27 @@
-from app.core.config import settings
-from datetime import timedelta
-from datetime import timezone
-from datetime import datetime
-from pwdlib import PasswordHash
+import hashlib
+import hmac
+
 import jwt
+from pwdlib import PasswordHash
+
+from app.core.config import settings
+from datetime import timedelta, timezone, datetime
 
 pwd_context = PasswordHash.recommended()
 
-def get_hash(secret : str) -> str:
+# Slow hash — bcrypt/argon2, used only for user passwords
+def get_hash(secret: str) -> str:
     return pwd_context.hash(secret)
 
-def verify_hash(secret : str, hashed_secret : str) -> bool:
+def verify_hash(secret: str, hashed_secret: str) -> bool:
     return pwd_context.verify(secret, hashed_secret)
+
+# Fast hash — SHA-256, used for refresh tokens (already high-entropy random strings)
+def hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
+
+def verify_token_hash(token: str, token_hash: str) -> bool:
+    return hmac.compare_digest(hash_token(token), token_hash)
 
 
 

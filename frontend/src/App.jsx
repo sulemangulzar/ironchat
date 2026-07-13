@@ -411,10 +411,30 @@ function App() {
     setIsLoading(true)
     setAppError('')
 
+    const isFirstMessage = messages.filter((m) => m.role !== 'assistant' || m.content !== 'New chat started. What would you like to talk about?').length <= 1
+
     try {
       await sendChatMessage(activeChat.id, userMessage.content, (_, fullText) => {
         setMessages([...nextMessages.slice(0, -1), { role: 'assistant', content: fullText }])
       })
+
+      // If this was the first message the backend auto-named the chat — fetch updated title only
+      if (isFirstMessage) {
+        const updatedChats = await getChats()
+        const sortedChats = sortChatsDescending(updatedChats)
+        setChats(sortedChats)
+        const updatedActive = sortedChats.find((c) => c.id === activeChat.id)
+        if (updatedActive) setActiveChat(updatedActive)
+      } else {
+        // Just bump the active chat to top since updated_at changed
+        setChats((current) =>
+          sortChatsDescending(
+            current.map((c) =>
+              c.id === activeChat.id ? { ...c, updated_at: new Date().toISOString() } : c,
+            ),
+          ),
+        )
+      }
     } catch (error) {
       const errorMessage = error.message || 'I could not reach the backend. Please check your deployment.'
       setMessages([
@@ -431,7 +451,6 @@ function App() {
       })
     } finally {
       setIsLoading(false)
-      loadDashboard({ showLoader: false })
     }
   }
 

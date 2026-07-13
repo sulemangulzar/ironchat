@@ -2,6 +2,11 @@ import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from './stor
 
 export const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8001').replace(/\/$/, '')
 
+// Ping the backend every 9 minutes to prevent Render free tier cold starts
+setInterval(() => {
+  fetch(`${API_URL}/health`).catch(() => {})
+}, 9 * 60 * 1000)
+
 async function readError(response) {
   try {
     const data = await response.json()
