@@ -6,6 +6,7 @@ from app.models.message import Role
 from app.core.config import settings
 from datetime import datetime, timezone
 from groq import AsyncGroq
+from fastapi import BackgroundTasks
 
 SYSTEM_PROMPT = """
 You are IronChat, a highly intelligent, context-aware AI assistant.
@@ -34,8 +35,8 @@ class MessageService:
         self.groq_client = AsyncGroq(api_key=settings.GROQ_API_KEY)
 
     async def get_messages(self, chat_id: UUID, user_id: UUID):
-        await self.chat_repository.get_one_chat(user_id, chat_id)
-        messages = await self.repository.get_all_messages(chat_id)
+        # Optimized: Single DB roundtrip via INNER JOIN
+        messages = await self.repository.get_all_messages_for_user(chat_id, user_id)
         return [
             {
                 "id": str(message.id),
@@ -46,16 +47,34 @@ class MessageService:
             for message in messages
         ]
 
-    async def generate_response(self, chat_id: UUID, user_prompt: SendMessage, user_id: UUID):
+    async def _update_title_task(self, chat_id: UUID, user_id: UUID, prompt_text: str):
+        from app.core.database import get_session
+        from app.repositories.chat import ChatRepository
+        
+        new_title = prompt_text[:30] + "..." if len(prompt_text) > 30 else prompt_text
+        
+        async for session in get_session():
+            repo = ChatRepository(session)
+            try:
+                chat = await repo.get_one_chat(user_id, chat_id)
+                chat.title = new_title
+                await repo.update_chat(chat)
+            except Exception as e:
+                print(f"Background title update failed: {e}")
+            break
+
+    async def generate_response(self, chat_id: UUID, user_prompt: SendMessage, user_id: UUID, background_tasks: BackgroundTasks):
         chat = await self.chat_repository.get_one_chat(user_id, chat_id)
         
         history = await self.repository.get_all_messages(chat_id)
 
         prompt_text = user_prompt.content
         if len(history) == 0:
-            new_title = prompt_text[:30] + "..." if len(prompt_text) > 30 else prompt_text
-            chat.title = new_title
-            await self.chat_repository.update_chat(chat)
+            if background_tasks:
+                background_tasks.add_task(self._update_title_task, chat_id, user_id, prompt_text)
+            else:
+                import asyncio
+                asyncio.create_task(self._update_title_task(chat_id, user_id, prompt_text))
             
 
         await self.repository.save_message(chat_id, Role.USER, prompt_text)

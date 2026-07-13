@@ -55,9 +55,16 @@ const getPageFromPath = () => {
     return 'dashboard'
   }
 
+  if (hasSession()) {
+    if (window.location.pathname !== pageRoutes.dashboard) {
+      window.history.replaceState(null, '', pageRoutes.dashboard)
+    }
+    return 'dashboard'
+  }
+
   if (window.location.pathname === pageRoutes.login) return 'login'
   if (window.location.pathname === pageRoutes.signup) return 'signup'
-  if (window.location.pathname === pageRoutes.dashboard) return hasSession() ? 'dashboard' : 'login'
+  if (window.location.pathname === pageRoutes.dashboard) return 'login'
 
   return 'landing'
 }
@@ -67,7 +74,7 @@ const formatChatMessages = (chatMessages) => {
     return [
       {
         role: 'assistant',
-        content: 'This chat is empty. Ask your first question to begin.',
+        content: 'Greetings! A new chat is started. What would you like to talk about?',
       },
     ]
   }
@@ -88,7 +95,7 @@ function App() {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: 'Welcome to IronChat. Login, start a chat, and ask me anything.',
+      content: 'Greetings! A new chat is started. What would you like to talk about?',
     },
   ])
   const [user, setUser] = useState(null)
@@ -222,7 +229,7 @@ function App() {
     setMessages([
       {
         role: 'assistant',
-        content: 'Welcome to IronChat. Login, start a chat, and ask me anything.',
+        content: 'Greetings! A new chat is started. What would you like to talk about?',
       },
     ])
     navigate('landing')
@@ -277,7 +284,7 @@ function App() {
       setMessages([
         {
           role: 'assistant',
-          content: 'New chat started. What would you like to talk about?',
+          content: 'Greetings! A new chat is started. What would you like to talk about?',
         },
       ])
       setSidebarOpen(false)

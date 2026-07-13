@@ -1,5 +1,6 @@
 import ChatPreview from './ChatPreview'
 import Features from './Features'
+import { hasSession } from '../lib/storage'
 
 function Hero({ setPage }) {
   const scrollToFeatures = () => {
@@ -28,10 +29,10 @@ function Hero({ setPage }) {
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
-              onClick={() => setPage('signup')}
+              onClick={() => setPage(hasSession() ? 'dashboard' : 'signup')}
               className="rounded-2xl bg-slate-950 px-7 py-4 text-center font-bold text-white transition hover:-translate-y-1 hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
             >
-              Get Started
+              {hasSession() ? 'Go to Dashboard' : 'Get Started'}
             </button>
             <button
               type="button"

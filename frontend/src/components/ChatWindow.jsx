@@ -6,7 +6,7 @@ import MessageInput from './MessageInput'
 function ChatWindow({ activeChat, isActionLoading, isChatLoading, isLoading, message, messages, sendMessage, setMessage }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white text-slate-950 dark:bg-[#212121] dark:text-white">
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-4 py-8 sm:px-6">
           {isChatLoading ? (
             <ChatSkeleton />
@@ -60,26 +60,26 @@ function ChatWindow({ activeChat, isActionLoading, isChatLoading, isLoading, mes
 
 function ChatSkeleton() {
   return (
-    <div className="space-y-8 pt-2 animate-pulse" aria-label="Loading chat messages">
-      <div className="flex gap-4">
-        <div className="h-8 w-8 flex-none rounded-full bg-slate-200 dark:bg-[#2f2f2f]" />
-        <div className="flex-1 space-y-3 pt-1">
-          <div className="h-4 w-2/3 rounded-full bg-slate-200 dark:bg-[#2f2f2f]" />
-          <div className="h-4 w-full rounded-full bg-slate-200 dark:bg-[#2f2f2f]" />
-          <div className="h-4 w-5/6 rounded-full bg-slate-200 dark:bg-[#2f2f2f]" />
+    <div className="space-y-10 pt-4 animate-pulse" aria-label="Loading chat messages">
+      <div className="flex gap-5">
+        <div className="h-9 w-9 flex-none rounded-full bg-slate-200/80 dark:bg-[#2f2f2f]" />
+        <div className="flex-1 space-y-4 pt-1.5">
+          <div className="h-4 w-2/3 rounded-full bg-slate-200/80 dark:bg-[#2f2f2f]" />
+          <div className="h-4 w-full rounded-full bg-slate-200/80 dark:bg-[#2f2f2f]" />
+          <div className="h-4 w-5/6 rounded-full bg-slate-200/80 dark:bg-[#2f2f2f]" />
         </div>
       </div>
 
       <div className="flex justify-end">
-        <div className="h-14 w-2/3 rounded-3xl bg-slate-200 dark:bg-[#2f2f2f] sm:w-1/2" />
+        <div className="h-16 w-2/3 rounded-3xl rounded-tr-md bg-slate-200/80 dark:bg-[#2f2f2f] sm:w-1/2" />
       </div>
 
-      <div className="flex gap-4">
-        <div className="h-8 w-8 flex-none rounded-full bg-slate-200 dark:bg-[#2f2f2f]" />
-        <div className="flex-1 space-y-3 pt-1">
-          <div className="h-4 w-full rounded-full bg-slate-200 dark:bg-[#2f2f2f]" />
-          <div className="h-4 w-3/4 rounded-full bg-slate-200 dark:bg-[#2f2f2f]" />
-          <div className="h-4 w-1/2 rounded-full bg-slate-200 dark:bg-[#2f2f2f]" />
+      <div className="flex gap-5">
+        <div className="h-9 w-9 flex-none rounded-full bg-slate-200/80 dark:bg-[#2f2f2f]" />
+        <div className="flex-1 space-y-4 pt-1.5">
+          <div className="h-4 w-full rounded-full bg-slate-200/80 dark:bg-[#2f2f2f]" />
+          <div className="h-4 w-3/4 rounded-full bg-slate-200/80 dark:bg-[#2f2f2f]" />
+          <div className="h-4 w-1/2 rounded-full bg-slate-200/80 dark:bg-[#2f2f2f]" />
         </div>
       </div>
     </div>
@@ -90,14 +90,14 @@ function MessageBubble({ message }) {
   const isUser = message.role === 'user'
 
   return (
-    <div className={`flex gap-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <div className={`animate-slide-up flex gap-5 ${isUser ? 'justify-end' : 'justify-start'}`}>
       {!isUser && <Avatar role="assistant" />}
 
       <div
         className={
           isUser
-            ? 'max-w-[80%] rounded-3xl bg-[#f4f4f4] px-5 py-3 leading-7 text-slate-900 dark:bg-[#2f2f2f] dark:text-white'
-            : 'min-w-0 flex-1 leading-7 text-slate-800 dark:text-slate-100'
+            ? 'max-w-[85%] rounded-[24px] rounded-tr-[8px] bg-slate-900 px-6 py-3.5 text-[15px] leading-relaxed text-white shadow-sm dark:bg-slate-100 dark:text-slate-900'
+            : 'min-w-0 flex-1 px-1 pt-1 text-[15px] leading-8 text-slate-800 dark:text-slate-200'
         }
       >
         {isUser ? (
@@ -115,13 +115,13 @@ function MessageBubble({ message }) {
 function Avatar({ role }) {
   return (
     <div
-      className={`grid h-8 w-8 flex-none place-items-center rounded-full text-sm font-black ${
+      className={`grid h-9 w-9 flex-none place-items-center rounded-full text-xs font-black shadow-sm ring-1 ring-inset ${
         role === 'user'
-          ? 'bg-cyan-400 text-slate-950'
-          : 'bg-transparent'
+          ? 'bg-gradient-to-br from-cyan-400 to-emerald-400 text-slate-950 ring-black/5 dark:ring-white/10'
+          : 'bg-transparent ring-transparent'
       }`}
     >
-      {role === 'user' ? 'Y' : <Logo size="sm" />}
+      {role === 'user' ? 'ME' : <Logo size="sm" />}
     </div>
   )
 }

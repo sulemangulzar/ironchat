@@ -4,9 +4,6 @@ class Settings(BaseSettings):
     GROQ_API_KEY : str
     ALLOWED_ORIGINS : str
     DATABASE_URL : str
-    CLIENT_ID : str = ""
-    CLIENT_SECRET : str = ""
-    REDIRECT_URI : str = ""
     GOOGLE_CLIENT_ID : str = ""
     GOOGLE_CLIENT_SECRET : str = ""
     GOOGLE_REDIRECT_URI : str = ""
@@ -16,7 +13,7 @@ class Settings(BaseSettings):
     SECRET_KEY : str
     ACCESS_TOKEN_EXPIRE_MINUTES : int
     REFRESH_TOKEN_EXPIRE_DAYS : int
-    
+
     @property
     def async_database_url(self) -> str:
         database_url = self.DATABASE_URL.strip().strip('"').strip("'")

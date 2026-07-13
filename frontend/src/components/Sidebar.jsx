@@ -11,6 +11,7 @@ function Sidebar({
   onSelectChat,
   sidebarOpen,
   setSidebarOpen,
+  setPage,
 }) {
   return (
     <>
@@ -24,17 +25,23 @@ function Sidebar({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-72 transform flex-col bg-[#f9f9f9] p-3 text-slate-950 transition duration-300 dark:bg-[#171717] dark:text-white lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-72 transform flex-col border-r border-slate-200/60 bg-[#fbfbfb] p-3 text-slate-900 shadow-2xl transition-transform duration-400 ease-out dark:border-white/5 dark:bg-[#121212] dark:text-slate-100 lg:static lg:translate-x-0 lg:shadow-none ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between px-2 py-2">
-          <Logo size="sm" showText />
+        <div className="flex items-center justify-between px-2 py-1">
+          <button
+            type="button"
+            onClick={() => setPage('landing')}
+            className="flex items-center transition-opacity hover:opacity-80"
+          >
+            <Logo size="sm" showText />
+          </button>
 
           <button
             type="button"
             onClick={() => setSidebarOpen(false)}
-            className="rounded-lg p-2 hover:bg-slate-200 dark:hover:bg-white/10 lg:hidden"
+            className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-900 dark:hover:bg-white/10 dark:hover:text-white lg:hidden"
           >
             ✕
           </button>
@@ -44,17 +51,21 @@ function Sidebar({
           type="button"
           onClick={onCreateChat}
           disabled={isActionLoading || isDashboardLoading}
-          className="mt-3 flex items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-white/10"
+          className="group mt-5 flex items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-bold shadow-sm ring-1 ring-slate-200/60 transition-all duration-300 hover:shadow-md hover:ring-slate-300 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#1a1a1a] dark:ring-white/10 dark:hover:bg-[#222] dark:hover:ring-white/20"
         >
-          <span className="text-lg">{isActionLoading ? '…' : '＋'}</span>
-          {isActionLoading ? 'Working...' : 'New chat'}
+          <span className="flex items-center gap-3">
+            <span className="grid h-6 w-6 place-items-center rounded-md bg-slate-100 text-lg transition-colors group-hover:bg-slate-200 dark:bg-white/5 dark:group-hover:bg-white/10">
+              {isActionLoading ? '…' : '＋'}
+            </span>
+            {isActionLoading ? 'Working...' : 'New chat'}
+          </span>
         </button>
 
-        <div className="mt-4 min-h-0 flex-1 space-y-1 overflow-y-auto">
+        <div className="no-scrollbar mt-6 min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
           {isDashboardLoading && <SidebarSkeleton />}
 
           {!isDashboardLoading && chats.length === 0 && (
-            <div className="rounded-xl px-3 py-3 text-sm text-slate-500 dark:text-slate-400">
+            <div className="px-3 py-3 text-sm font-medium text-slate-400 dark:text-slate-500">
               No chats yet.
             </div>
           )}
@@ -62,17 +73,19 @@ function Sidebar({
           {!isDashboardLoading && chats.map((chat) => (
             <div
               key={chat.id}
-              className={`group flex items-center gap-1 rounded-xl pr-1 transition ${
+              className={`group flex items-center gap-1 rounded-xl pr-1 transition-all duration-200 ${
                 activeChat?.id === chat.id
-                  ? 'bg-slate-200 font-semibold dark:bg-[#2f2f2f]'
-                  : 'hover:bg-slate-200 dark:hover:bg-white/10'
+                  ? 'bg-slate-200/50 font-semibold shadow-sm dark:bg-[#252525]'
+                  : 'hover:bg-slate-100 dark:hover:bg-white/5'
               }`}
             >
               <button
                 type="button"
                 onClick={() => onSelectChat(chat)}
                 disabled={isActionLoading}
-                className="min-w-0 flex-1 truncate px-3 py-3 text-left text-sm disabled:cursor-not-allowed"
+                className={`min-w-0 flex-1 truncate px-3 py-2.5 text-left text-sm transition-colors disabled:cursor-not-allowed ${
+                  activeChat?.id === chat.id ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300'
+                }`}
               >
                 {chat.title || 'New Chat'}
               </button>
@@ -85,7 +98,7 @@ function Sidebar({
                   onUpdateChatTitle(chat)
                 }}
                 disabled={isActionLoading}
-                className="flex-none rounded-lg px-2 py-1 text-xs text-slate-500 opacity-0 transition hover:bg-white hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-30 group-hover:opacity-100 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
+                className="flex-none rounded-md px-2 py-1 text-xs font-bold text-slate-400 opacity-0 transition-all hover:bg-white hover:text-slate-900 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-30 group-hover:opacity-100 dark:text-slate-500 dark:hover:bg-[#333] dark:hover:text-white"
               >
                 ✎
               </button>
@@ -98,7 +111,7 @@ function Sidebar({
                   onDeleteChat(chat)
                 }}
                 disabled={isActionLoading}
-                className="flex-none rounded-lg px-2 py-1 text-xs text-red-500 opacity-0 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-30 group-hover:opacity-100 dark:hover:bg-red-500/10"
+                className="flex-none rounded-md px-2 py-1 text-xs font-bold text-red-400 opacity-0 transition-all hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30 group-hover:opacity-100 dark:hover:bg-red-500/10 dark:hover:text-red-400"
               >
                 🗑
               </button>
@@ -106,7 +119,7 @@ function Sidebar({
           ))}
         </div>
 
-        <div className="border-t border-slate-200 px-2 py-3 text-xs text-slate-500 dark:border-white/10 dark:text-slate-400">
+        <div className="mt-4 rounded-xl bg-slate-100/50 p-3 text-[11px] font-medium leading-relaxed text-slate-500 dark:bg-white/5 dark:text-slate-400">
           Markdown supported with headings, lists, tables, and code blocks.
         </div>
       </aside>

@@ -11,7 +11,6 @@ class ChatRepository:
     async def create_chat(self, chat):
         self.session.add(chat)
         await self.session.commit()
-        await self.session.refresh(chat)
         return chat
     
     async def get_all_chats(self, user_id : UUID):
@@ -28,17 +27,30 @@ class ChatRepository:
             raise ChatNotFound()
         return chat
 
-    async def delete_chat(self, chat: Chat):
-        messages = await self.session.exec(select(Message).where(Message.chat_id == chat.id))
-
-        for message in messages.all():
-            await self.session.delete(message)
-
-        await self.session.delete(chat)
+    async def delete_chat_by_id(self, user_id: UUID, chat_id: UUID):
+        from sqlmodel import text
+        from app.utils.exceptions import ChatNotFound
+        
+        # Database technique: Common Table Expression (CTE)
+        # This single SQL query finds the chat, deletes all its messages, and then deletes the chat itself
+        # entirely on the database server. This eliminates 2 full network round-trips!
+        sql = text("""
+            WITH target_chat AS (
+                SELECT id FROM chats WHERE id = :chat_id AND user_id = :user_id
+            ),
+            deleted_messages AS (
+                DELETE FROM messages WHERE chat_id IN (SELECT id FROM target_chat)
+            )
+            DELETE FROM chats WHERE id IN (SELECT id FROM target_chat) RETURNING id;
+        """)
+        
+        result = await self.session.exec(sql, params={"chat_id": chat_id, "user_id": user_id})
+        if not result.first():
+            raise ChatNotFound()
+            
         await self.session.commit()
 
     async def update_chat(self, chat: Chat):
         self.session.add(chat)
         await self.session.commit()
-        await self.session.refresh(chat)
         return chat

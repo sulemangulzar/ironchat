@@ -1,3 +1,4 @@
+import { hasSession } from '../lib/storage'
 import Logo from './Logo'
 import ThemeToggle from './ThemeToggle'
 
@@ -21,20 +22,32 @@ function Header({ isDark, setIsDark, setPage }) {
 
         <div className="flex items-center gap-2">
           <ThemeToggle isDark={isDark} setIsDark={setIsDark} />
-          <button
-            type="button"
-            onClick={() => setPage('login')}
-            className="hidden rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10 sm:block"
-          >
-            Login
-          </button>
-          <button
-            type="button"
-            onClick={() => setPage('signup')}
-            className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
-          >
-            Sign up
-          </button>
+          {hasSession() ? (
+            <button
+              type="button"
+              onClick={() => setPage('dashboard')}
+              className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
+            >
+              Dashboard
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => setPage('login')}
+                className="hidden rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10 sm:block"
+              >
+                Login
+              </button>
+              <button
+                type="button"
+                onClick={() => setPage('signup')}
+                className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
+              >
+                Sign up
+              </button>
+            </>
+          )}
         </div>
       </div>
     </header>

@@ -18,8 +18,8 @@ class ChatService:
         return await self.repository.get_one_chat(user_id, chat_id)
 
     async def delete_chat(self, user_id: UUID, chat_id: UUID):
-        chat = await self.repository.get_one_chat(user_id, chat_id)
-        await self.repository.delete_chat(chat)
+        # Optimized: Delete messages and chat in a single round-trip without fetching first
+        await self.repository.delete_chat_by_id(user_id, chat_id)
 
     async def update_chat(self, user_id: UUID, chat_id: UUID, title: str):
         from datetime import datetime, timezone

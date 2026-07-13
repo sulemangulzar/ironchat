@@ -25,13 +25,11 @@ class UserRepository:
     async def create(self, user : User):
         self.session.add(user)
         await self.session.commit()
-        await self.session.refresh(user)
         return user
 
     async def save_refresh_token(self, refresh_token):
         self.session.add(refresh_token)
         await self.session.commit()
-        await self.session.refresh(refresh_token)
         return refresh_token
 
     async def get_refresh_tokens_by_user(self, user_id: UUID):
@@ -44,15 +42,13 @@ class UserRepository:
         await self.session.commit()
     
     async def delete_all_refresh_token(self, user_id):
-        result = await self.session.exec(select(RefreshToken).where(RefreshToken.user_id == user_id))
-        for token in result.all():
-            await self.session.delete(token)
+        from sqlmodel import delete
+        await self.session.exec(delete(RefreshToken).where(RefreshToken.user_id == user_id))
         await self.session.commit()
 
     async def update(self, user: User):
         self.session.add(user)
         await self.session.commit()
-        await self.session.refresh(user)
         return user
 
     async def delete(self, user: User):
@@ -71,11 +67,9 @@ class UserRepository:
     async def create_oauth_account(self, oauth_account: OAuthAccount):
         self.session.add(oauth_account)
         await self.session.commit()
-        await self.session.refresh(oauth_account)
         return oauth_account
 
     async def update_oauth_account(self, oauth_account: OAuthAccount):
         self.session.add(oauth_account)
         await self.session.commit()
-        await self.session.refresh(oauth_account)
         return oauth_account

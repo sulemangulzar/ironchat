@@ -9,34 +9,37 @@ function Logo({ size = 'md', showText = false, className = '' }) {
     <div className={`flex items-center gap-3 ${className}`}>
       <svg
         viewBox="0 0 64 64"
-        className={`${sizes[size]} drop-shadow-md`}
+        className={`${sizes[size]} drop-shadow-sm transition-transform duration-300 hover:scale-105`}
         role="img"
         aria-label="IronChat logo"
       >
         <defs>
-          <linearGradient id="ironchat-gradient" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
+          <linearGradient id="ironchat-bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
             <stop stopColor="#0f172a" />
-            <stop offset="0.5" stopColor="#155e75" />
-            <stop offset="1" stopColor="#22d3ee" />
+            <stop offset="1" stopColor="#1e293b" />
           </linearGradient>
-          <linearGradient id="ironchat-bolt" x1="25" y1="20" x2="40" y2="44" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#22d3ee" />
-            <stop offset="1" stopColor="#f8fafc" />
+          <linearGradient id="ironchat-accent" x1="16" y1="16" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#0891b2" />
+            <stop offset="1" stopColor="#06b6d4" />
           </linearGradient>
         </defs>
-
-        <rect width="64" height="64" rx="18" fill="url(#ironchat-gradient)" />
-        <path
-          d="M17 27.5C17 21.7 21.7 17 27.5 17h9C42.3 17 47 21.7 47 27.5v5C47 38.3 42.3 43 36.5 43H31l-8.2 5.6c-1.5 1-3.5-.1-3.5-1.9V42.2C16.1 40.5 14 37.2 14 33.5V31c0-1.1.9-2 2-2h1v-1.5Z"
-          fill="white"
-          fillOpacity="0.96"
+        
+        {/* Outer Hexagon Shield Container */}
+        <path 
+          d="M32 4L56 18v28L32 60L8 46V18L32 4z" 
+          fill="url(#ironchat-bg)" 
+          className="drop-shadow-lg"
         />
-        <path
-          d="M34.8 20.5 24.8 34H32l-2.8 9.5 10.4-14H33l1.8-9Z"
-          fill="url(#ironchat-bolt)"
+        
+        {/* Inner Abstract Chat Bubble / Anvil */}
+        <path 
+          d="M40 24H24c-2.2 0-4 1.8-4 4v12c0 2.2 1.8 4 4 4h4v6l7-6h5c2.2 0 4-1.8 4-4V28c0-2.2-1.8-4-4-4z" 
+          fill="url(#ironchat-accent)" 
         />
-        <circle cx="25.5" cy="29.5" r="2" fill="#0f172a" />
-        <circle cx="39" cy="29.5" r="2" fill="#0f172a" />
+        
+        {/* Tech Nodes */}
+        <circle cx="28" cy="34" r="2.5" fill="#f8fafc" />
+        <circle cx="36" cy="34" r="2.5" fill="#f8fafc" />
       </svg>
 
       {showText && (
