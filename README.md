@@ -74,6 +74,6 @@ IronChat is a modern, responsive, and elegant AI chatbot application designed fo
    npm run dev
    ```
 
-## License
+## Contributing
 
-This project is licensed under the MIT License.
+Contributions are welcome. Feel free to open an issue or submit a pull request.
