@@ -89,7 +89,10 @@ class MessageService:
             stream = await self.groq_client.chat.completions.create(
                 messages=messages,
                 model=chat.model, 
-                stream=True
+                stream=True,
+                temperature=settings.LLM_TEMPERATURE,
+                max_tokens=settings.LLM_MAX_TOKENS,
+                top_p=settings.LLM_TOP_P
             )
             
             async for chunk in stream:

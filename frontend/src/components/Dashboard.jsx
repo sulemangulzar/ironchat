@@ -43,12 +43,12 @@ function Dashboard({
         />
 
       <section className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex h-16 flex-none items-center justify-between border-b border-slate-200/60 bg-white/80 px-4 backdrop-blur-md dark:border-white/5 dark:bg-[#121212]/80 sm:px-6">
-          <div className="flex min-w-0 items-center gap-4">
+        <header className="sticky top-0 z-10 flex h-16 flex-none items-center justify-between border-b border-slate-200/60 bg-white/80 px-3 backdrop-blur-md dark:border-white/5 dark:bg-[#121212]/80 sm:px-6">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4 pr-2">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="rounded-full p-2.5 text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-900 active:scale-95 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white lg:hidden"
+              className="rounded-full p-2 text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-900 active:scale-95 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white lg:hidden"
               aria-label="Open sidebar"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -58,21 +58,21 @@ function Dashboard({
               </svg>
             </button>
             
-            <div className="flex min-w-0 flex-col justify-center">
+            <div className="flex min-w-0 flex-1 flex-col justify-center">
               {isDashboardLoading ? (
-                <div className="h-5 w-48 animate-pulse rounded-full bg-slate-200 dark:bg-[#2f2f2f]" />
+                <div className="h-5 w-32 animate-pulse rounded-full bg-slate-200 dark:bg-[#2f2f2f] sm:w-48" />
               ) : (
-                <div className="flex items-center gap-3">
-                  <h1 className="truncate text-lg font-black tracking-tight text-slate-900 dark:text-white">
+                <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                  <h1 className="truncate text-base font-black tracking-tight text-slate-900 dark:text-white sm:text-lg">
                     {activeChat?.title || 'IronChat'}
                   </h1>
                   {activeChat && !isDashboardLoading && (
-                    <div className="flex items-center gap-1 opacity-60 transition-opacity hover:opacity-100">
+                    <div className="flex flex-none items-center gap-1 opacity-60 transition-opacity hover:opacity-100">
                       <button
                         type="button"
                         onClick={() => onUpdateChatTitle(activeChat)}
                         disabled={isActionLoading}
-                        className="rounded-md px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
+                        className="rounded-md px-1.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white sm:px-2 sm:text-[11px]"
                       >
                         Edit
                       </button>
@@ -80,7 +80,7 @@ function Dashboard({
                         type="button"
                         onClick={() => onDeleteChat(activeChat)}
                         disabled={isActionLoading}
-                        className="rounded-md px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-red-500 transition-colors hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+                        className="rounded-md px-1.5 py-1 text-[10px] font-bold uppercase tracking-wider text-red-500 transition-colors hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-red-500/10 dark:hover:text-red-400 sm:px-2 sm:text-[11px]"
                       >
                         Delete
                       </button>
@@ -91,7 +91,7 @@ function Dashboard({
             </div>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex flex-none items-center gap-2 sm:gap-4">
             <div className="hidden flex-col items-end sm:flex">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                 Workspace
@@ -101,7 +101,7 @@ function Dashboard({
               </span>
             </div>
             
-            <div className="h-8 w-px bg-slate-200 dark:bg-white/10 hidden sm:block"></div>
+            <div className="hidden h-8 w-px bg-slate-200 dark:bg-white/10 sm:block"></div>
             
             <ThemeToggle isDark={isDark} setIsDark={setIsDark} />
             
@@ -115,7 +115,7 @@ function Dashboard({
             <button
               type="button"
               onClick={onLogout}
-              className="rounded-lg bg-slate-900 px-4 py-1.5 text-sm font-bold text-white shadow-sm ring-1 ring-slate-900/10 transition-all hover:bg-slate-800 hover:shadow dark:bg-white dark:text-slate-900 dark:ring-white/10 dark:hover:bg-slate-100"
+              className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white shadow-sm ring-1 ring-slate-900/10 transition-all hover:bg-slate-800 hover:shadow dark:bg-white dark:text-slate-900 dark:ring-white/10 dark:hover:bg-slate-100 sm:px-4 sm:text-sm"
             >
               Logout
             </button>
