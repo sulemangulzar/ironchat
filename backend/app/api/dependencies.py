@@ -25,24 +25,31 @@ def get_user_service(session : SessionDep):
 
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 
-async def get_current_user(token : Annotated[str, Depends(oauth_scheme)], session : SessionDep):
+def get_current_user_id(token: Annotated[str, Depends(oauth_scheme)]) -> UUID:
+    """Fast path: decode JWT only, no DB hit. Use for any route that only needs user.id."""
     payload = decode_token(token)
     if payload is None:
         raise InvalidToken()
-    
+
     user_id_str = payload.get("sub")
     if not user_id_str:
         raise InvalidToken()
-    
+
     try:
-        user_id = UUID(user_id_str)
+        return UUID(user_id_str)
     except ValueError:
         raise InvalidToken()
-    
+
+CurrentUserIdDep = Annotated[UUID, Depends(get_current_user_id)]
+
+async def get_current_user(token: Annotated[str, Depends(oauth_scheme)], session: SessionDep):
+    """Full path: decode JWT + DB lookup. Only use for routes that need the User object."""
+    user_id = get_current_user_id(token)
+
     repository = UserRepository(session)
     user = await repository.get_by_id(user_id)
     if not user:
-         raise InvalidToken()
+        raise InvalidToken()
 
     return user
 

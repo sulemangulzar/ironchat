@@ -7,9 +7,9 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 engine = create_async_engine(
     settings.async_database_url,
     echo=False,
-    pool_pre_ping=True,
     pool_size=5,
     max_overflow=5,
+    pool_recycle=300,  # recycle connections every 5 min to avoid stale connections
     connect_args={"ssl": "require", "server_settings": {"jit": "off"}, "statement_cache_size": 0},
 )
 
