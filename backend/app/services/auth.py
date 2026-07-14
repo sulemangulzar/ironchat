@@ -8,7 +8,7 @@ from app.core.security import (
     verify_hash,
     verify_token_hash,
 )
-from app.utils.exceptions import LoginException, UserAlreadyExists
+from app.utils.exceptions import LoginException, UserAlreadyExists, OAuthAccountExistsException
 from app.models import User
 import asyncio
 from app.schemas.auth import CreateUser
@@ -26,6 +26,8 @@ class UserService:
     async def create(self, credentials : CreateUser):
         user_exists = await self.repositroy.get_by_email(credentials.email)
         if user_exists:
+            if not user_exists.hashed_password:
+                raise OAuthAccountExistsException()
             raise UserAlreadyExists()
         
         hashed_pw = await asyncio.to_thread(get_hash, credentials.password)
@@ -39,8 +41,10 @@ class UserService:
 
     async def login(self, email : str, password : str):
         user = await self.repositroy.get_by_email(email)
-        if not user or not user.hashed_password:
+        if not user:
             raise LoginException()
+        if not user.hashed_password:
+            raise OAuthAccountExistsException()
             
         is_valid = await asyncio.to_thread(verify_hash, password, user.hashed_password)
         if not is_valid:
