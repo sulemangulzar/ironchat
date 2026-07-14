@@ -13,4 +13,12 @@ async def messages(chat_id: UUID, user_id: CurrentUserIdDep, service: MessageSer
 @router.post("/{chat_id}/message")
 async def message(chat_id: UUID, data: SendMessage, user_id: CurrentUserIdDep, service: MessageServiceDep, background_tasks: BackgroundTasks):
     generator = await service.generate_response(chat_id, data, user_id, background_tasks)
-    return StreamingResponse(generator, media_type="text/event-stream")
+    return StreamingResponse(
+        generator, 
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
