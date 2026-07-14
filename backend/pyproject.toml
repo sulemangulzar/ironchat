@@ -23,6 +23,7 @@ dependencies = [
     "scalar-fastapi>=1.8.2",
     "sqlalchemy>=2.0.51",
     "sqlmodel>=0.0.39",
+    "tavily-python>=0.7.26",
     "uvicorn[standard]>=0.51.0",
 ]
 

@@ -18,6 +18,10 @@ function Dashboard({
   onLogout,
   onUpdateChatTitle,
   sendMessage,
+  stopMessage,
+  enableSearch,
+  setEnableSearch,
+  onInputFocus,
   onSelectChat,
   setIsDark,
   setMessage,
@@ -136,7 +140,11 @@ function Dashboard({
           message={message}
           messages={messages}
           sendMessage={sendMessage}
+          stopMessage={stopMessage}
           setMessage={setMessage}
+          enableSearch={enableSearch}
+          setEnableSearch={setEnableSearch}
+          onInputFocus={onInputFocus}
         />
       </section>
     </main>

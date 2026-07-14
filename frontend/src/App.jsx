@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 import AuthPage from './components/AuthPage'
 import ChatActionModal from './components/ChatActionModal'
 import Dashboard from './components/Dashboard'
@@ -106,6 +106,8 @@ function App() {
   const [appError, setAppError] = useState('')
   const [toasts, setToasts] = useState([])
   const [chatAction, setChatAction] = useState(null)
+  const [enableSearch, setEnableSearch] = useState(false)
+  const abortControllerRef = useRef(null)
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark)
@@ -270,39 +272,40 @@ function App() {
     }
   }
 
-  const handleCreateChat = async () => {
-    if (isActionLoading) return
-
+  // Core chat creation logic — shared between button click and auto-create on focus
+  const createNewChat = async () => {
+    if (isActionLoading) return null
     setAppError('')
     setIsActionLoading(true)
-
     try {
       const newChat = await createChat()
       setChats((currentChats) => sortChatsDescending([newChat, ...currentChats]))
       setActiveChat(newChat)
       saveActiveChatId(newChat.id)
-      setMessages([
-        {
-          role: 'assistant',
-          content: 'Greetings! A new chat is started. What would you like to talk about?',
-        },
-      ])
+      setMessages([])
       setSidebarOpen(false)
-      showToast({
-        type: 'success',
-        title: 'New chat created',
-        message: 'Your new conversation is ready.',
-      })
+      return newChat
     } catch (error) {
       const errorMessage = error.message || 'Could not create chat.'
       setAppError(errorMessage)
-      showToast({
-        type: 'error',
-        title: 'Could not create chat',
-        message: errorMessage,
-      })
+      showToast({ type: 'error', title: 'Could not create chat', message: errorMessage })
+      return null
     } finally {
       setIsActionLoading(false)
+    }
+  }
+
+  const handleCreateChat = async () => {
+    const newChat = await createNewChat()
+    if (newChat) {
+      showToast({ type: 'success', title: 'New chat created', message: 'Your new conversation is ready.' })
+    }
+  }
+
+  // When the user focuses the input with no active chat, silently create one
+  const handleInputFocus = async () => {
+    if (!activeChat && !isActionLoading) {
+      await createNewChat()
     }
   }
 
@@ -363,29 +366,10 @@ function App() {
       setChats(remainingChats)
 
       if (activeChat?.id === chat.id) {
-        const nextChat = remainingChats[0] || null
-        setActiveChat(nextChat)
-
-        if (nextChat) {
-          saveActiveChatId(nextChat.id)
-          setMessages([])
-          setIsChatLoading(true)
-
-          try {
-            const chatMessages = await getChatMessages(nextChat.id)
-            setMessages(formatChatMessages(chatMessages))
-          } finally {
-            setIsChatLoading(false)
-          }
-        } else {
-          clearActiveChatId()
-          setMessages([
-            {
-              role: 'assistant',
-              content: 'Chat deleted. Create a new chat to begin.',
-            },
-          ])
-        }
+        // Deselect the deleted chat — don't auto-jump to another or create a new one
+        setActiveChat(null)
+        clearActiveChatId()
+        setMessages([])
       }
       setChatAction(null)
       showToast({
@@ -406,57 +390,112 @@ function App() {
     }
   }
 
+  
   const sendMessage = async () => {
-    if (!message.trim() || isLoading || isChatLoading || isActionLoading || !activeChat) return
+    if (!message.trim() || isLoading || isChatLoading || isActionLoading) return
+
+    // Auto-create a chat if none is active (e.g. after deleting)
+    let chatToUse = activeChat
+    if (!chatToUse) {
+      chatToUse = await createNewChat()
+      if (!chatToUse) return  // creation failed
+    }
 
     const userMessage = { role: 'user', content: message.trim() }
-    const assistantMessage = { role: 'assistant', content: '' }
-    const nextMessages = [...messages, userMessage, assistantMessage]
+    const assistantMessage = { 
+      role: 'assistant', 
+      content: '', 
+      research: { usedWeb: false, queries: [], sources: [], timeline: [] } 
+    }
 
-    setMessages(nextMessages)
+    setMessages((prev) => [...prev, userMessage, assistantMessage])
     setMessage('')
     setIsLoading(true)
     setAppError('')
 
-    const isFirstMessage = messages.filter((m) => m.role !== 'assistant' || m.content !== 'New chat started. What would you like to talk about?').length <= 1
+    abortControllerRef.current = new AbortController()
 
     try {
-      await sendChatMessage(activeChat.id, userMessage.content, (_, fullText) => {
-        setMessages([...nextMessages.slice(0, -1), { role: 'assistant', content: fullText }])
-      })
+      await sendChatMessage(
+        chatToUse.id,
+        userMessage.content,
+        enableSearch,
+        (event) => {
+          setMessages((current) => {
+            const updated = [...current]
+            const lastIdx = updated.length - 1
+            const lastMsg = { ...updated[lastIdx], research: { ...updated[lastIdx].research } }
+            
+            if (event.type === 'status') {
+              lastMsg.research.usedWeb = true
+              lastMsg.research.status = event.status
+              lastMsg.research.statusMessage = event.message
+              if (!lastMsg.research.timeline) lastMsg.research.timeline = []
+              if (event.message && !lastMsg.research.timeline.includes(event.message)) {
+                lastMsg.research.timeline.push(event.message)
+              }
+              if (event.query && !lastMsg.research.queries.includes(event.query)) {
+                lastMsg.research.queries.push(event.query)
+              }
+            } else if (event.type === 'search_results') {
 
-      // If this was the first message the backend auto-named the chat — fetch updated title only
-      if (isFirstMessage) {
-        const updatedChats = await getChats()
-        const sortedChats = sortChatsDescending(updatedChats)
-        setChats(sortedChats)
-        const updatedActive = sortedChats.find((c) => c.id === activeChat.id)
-        if (updatedActive) setActiveChat(updatedActive)
-      } else {
-        // Just bump the active chat to top since updated_at changed
-        setChats((current) =>
-          sortChatsDescending(
-            current.map((c) =>
-              c.id === activeChat.id ? { ...c, updated_at: new Date().toISOString() } : c,
-            ),
-          ),
-        )
-      }
-    } catch (error) {
-      const errorMessage = error.message || 'I could not reach the backend. Please check your deployment.'
-      setMessages([
-        ...nextMessages.slice(0, -1),
-        {
-          role: 'assistant',
-          content: errorMessage,
+              lastMsg.research.usedWeb = true
+              lastMsg.research.statusMessage = `Found ${event.sources.length} relevant sources`
+              event.sources.forEach(src => {
+                if (!lastMsg.research.sources.find(s => s.url === src.url)) {
+                  lastMsg.research.sources.push(src)
+                }
+              })
+            } else if (event.type === 'content') {
+              lastMsg.content += event.delta
+            } else if (event.type === 'citations') {
+              lastMsg.research.sources = event.sources
+            } else if (event.type === 'error') {
+              lastMsg.research.error = event.message
+              lastMsg.research.status = 'error'
+            } else if (event.type === 'done') {
+              lastMsg.research.status = 'done'
+            }
+            
+            updated[lastIdx] = lastMsg
+            return updated
+          })
         },
-      ])
-      showToast({
-        type: 'error',
-        title: 'Message failed',
-        message: errorMessage,
-      })
+        abortControllerRef.current.signal
+      )
+
+      // Always refresh the chat list after sending so the title and order update
+      const updatedChats = await getChats()
+      const sortedChats = sortChatsDescending(updatedChats)
+      setChats(sortedChats)
+      const updatedActive = sortedChats.find((c) => c.id === chatToUse.id)
+      if (updatedActive) setActiveChat(updatedActive)
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        const errorMessage = error.message || 'I could not reach the backend. Please check your deployment.'
+        setMessages((current) => {
+          const updated = [...current]
+          const lastIdx = updated.length - 1
+          if (updated[lastIdx].content === '') {
+             updated[lastIdx].content = errorMessage
+          }
+          return updated
+        })
+        showToast({
+          type: 'error',
+          title: 'Message failed',
+          message: errorMessage,
+        })
+      }
     } finally {
+      setIsLoading(false)
+      abortControllerRef.current = null
+    }
+  }
+
+  const stopMessage = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
       setIsLoading(false)
     }
   }
@@ -496,6 +535,10 @@ function App() {
           onLogout={handleLogout}
           onUpdateChatTitle={handleUpdateChatTitle}
           sendMessage={sendMessage}
+          stopMessage={stopMessage}
+          enableSearch={enableSearch}
+          setEnableSearch={setEnableSearch}
+          onInputFocus={handleInputFocus}
           onSelectChat={handleSelectChat}
           setIsDark={setIsDark}
           setMessage={setMessage}

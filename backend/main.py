@@ -8,6 +8,7 @@ from app.api.v1.auth import router as auth_router
 from app.api.v1.chat import router as chat_router
 from app.api.v1.message import router as message_router
 from app.api.v1.oauth import router as oauth_router
+from app.api.v1.web_search import router as web_search_router
 from app.core.config import settings
 from app.core.database import engine
 
@@ -57,6 +58,7 @@ app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(message_router)
 app.include_router(oauth_router)
+app.include_router(web_search_router)
 
 
 @app.get("/")

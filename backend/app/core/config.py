@@ -13,10 +13,11 @@ class Settings(BaseSettings):
     SECRET_KEY : str
     ACCESS_TOKEN_EXPIRE_MINUTES : int
     REFRESH_TOKEN_EXPIRE_DAYS : int
+    TAVILY_API_KEY : str
     
     # LLM Settings
     LLM_TEMPERATURE : float = 0.7
-    LLM_MAX_TOKENS : int = 2048
+    LLM_MAX_TOKENS : int = 1024
     LLM_TOP_P : float = 0.9
 
     @property

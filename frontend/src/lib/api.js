@@ -145,10 +145,11 @@ export function getChatMessages(chatId) {
   return request(`/chat/${chatId}/messages`)
 }
 
-export async function sendChatMessage(chatId, content, onChunk) {
+export async function sendChatMessage(chatId, content, enableSearch, onEvent, signal) {
   const response = await fetchWithAuth(`/chat/${chatId}/message`, {
     method: 'POST',
-    body: JSON.stringify({ content }),
+    body: JSON.stringify({ content, enable_search: enableSearch }),
+    signal,
   })
 
   if (!response.ok) {
@@ -156,21 +157,47 @@ export async function sendChatMessage(chatId, content, onChunk) {
   }
 
   if (!response.body) {
-    return ''
+    return
   }
 
   const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let fullText = ''
+  const decoder = new TextDecoder('utf-8')
+  let buffer = ''
 
-  while (true) {
-    const { value, done } = await reader.read()
-    if (done) break
+  try {
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) break
 
-    const chunk = decoder.decode(value, { stream: true })
-    fullText += chunk
-    onChunk?.(chunk, fullText)
+      buffer += decoder.decode(value, { stream: true })
+
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+
+      for (const line of lines) {
+        const trimmedLine = line.trim()
+        if (!trimmedLine || !trimmedLine.startsWith('data: ')) continue
+
+        const jsonStr = trimmedLine.slice(6).trim()
+        if (!jsonStr) continue
+
+        try {
+          const event = JSON.parse(jsonStr)
+          onEvent?.(event)
+
+          if (event.type === 'done') {
+            return
+          }
+        } catch (e) {
+          console.warn('Failed to parse SSE event:', jsonStr, e)
+        }
+      }
+    }
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('Stream aborted by user')
+    } else {
+      throw error
+    }
   }
-
-  return fullText
 }
