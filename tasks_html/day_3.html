@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Week 2 · Day 3 — Retrieval-Augmented Generation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg0: #060A15;
+            --bg1: #0A1020;
+            --bg2: #0E1528;
+            --ink: #EAF0FF;
+            --muted: #93A4C7;
+            --dim: #5C6E92;
+            --cyan: #3FE0FF;
+            --cyan2: #1FBEEC;
+            --violet: #8B6BFF;
+            --violet2: #AD93FF;
+            --amber: #FFC061;
+            --line: rgba(255, 255, 255, .11);
+            --panel: rgba(255, 255, 255, .045);
+            --panel2: rgba(255, 255, 255, .07);
+            --display: "Space Grotesk", system-ui, sans-serif;
+            --body: "Inter", system-ui, sans-serif;
+            --mono: "JetBrains Mono", ui-monospace, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            background: var(--bg0);
+            color: var(--ink);
+            font-family: var(--body);
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+        }
+
+        a {
+            color: var(--cyan);
+            text-decoration: none;
+        }
+
+        /* ambient vector field behind everything */
+        #field {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            opacity: .55;
+        }
+
+        .veil {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background:
+                radial-gradient(1200px 780px at 82% 12%, rgba(63, 224, 255, .10), transparent 60%),
+                radial-gradient(1100px 820px at 12% 92%, rgba(139, 107, 255, .13), transparent 62%),
+                radial-gradient(900px 600px at 50% 50%, rgba(10, 16, 32, .0), rgba(6, 10, 21, .55) 100%);
+        }
+
+        /* slides */
+        .deck {
+            position: relative;
+            z-index: 2;
+            height: 100vh;
+        }
+
+        .scene {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            padding: 7vh 8.5vw;
+        }
+
+        .scene.active {
+            display: flex;
+        }
+
+        body.js .scene {
+            opacity: 0;
+            transform: translateY(14px);
+            transition: opacity .5s ease, transform .5s ease;
+        }
+
+        body.js .scene.active {
+            opacity: 1;
+            transform: none;
+        }
+
+        .eyebrow {
+            font-family: var(--mono);
+            font-size: clamp(11px, 1.05vw, 14px);
+            letter-spacing: .34em;
+            text-transform: uppercase;
+            color: var(--cyan);
+            margin-bottom: 2.4vh;
+            font-weight: 500;
+        }
+
+        h1 {
+            font-family: var(--display);
+            font-weight: 700;
+            letter-spacing: -.02em;
+            line-height: 1;
+            font-size: clamp(42px, 7.6vw, 104px);
+        }
+
+        h2 {
+            font-family: var(--display);
+            font-weight: 600;
+            letter-spacing: -.015em;
+            line-height: 1.03;
+            font-size: clamp(30px, 4.7vw, 62px);
+        }
+
+        .sub {
+            font-size: clamp(16px, 1.85vw, 24px);
+            color: var(--muted);
+            margin-top: 2.6vh;
+            max-width: 46ch;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        .big {
+            font-family: var(--display);
+            font-weight: 600;
+            line-height: 1.05;
+            letter-spacing: -.015em;
+            font-size: clamp(30px, 4.9vw, 66px);
+            max-width: 20ch;
+        }
+
+        .grad {
+            background: linear-gradient(105deg, var(--cyan), var(--violet2) 70%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .amberword {
+            color: var(--amber);
+        }
+
+        em {
+            font-style: normal;
+            color: var(--cyan);
+        }
+
+        strong {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .lead-num {
+            font-family: var(--mono);
+            color: var(--dim);
+            font-size: clamp(12px, 1.1vw, 15px);
+            letter-spacing: .2em;
+        }
+
+        /* wordmark + chrome */
+        .wm {
+            position: fixed;
+            top: 5.2vh;
+            left: 8.5vw;
+            z-index: 5;
+            font-family: var(--display);
+            font-weight: 700;
+            letter-spacing: .02em;
+            font-size: clamp(14px, 1.45vw, 19px);
+            color: #fff;
+            opacity: .95;
+            display: flex;
+            align-items: baseline;
+            gap: .5em;
+        }
+
+        .wm b {
+            color: var(--cyan);
+            margin-left: -.35em;
+        }
+
+        .wm .wm-sub {
+            font-family: var(--mono);
+            font-weight: 500;
+            font-size: .62em;
+            letter-spacing: .26em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        #bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 2px;
+            z-index: 6;
+            width: 0;
+            background: linear-gradient(90deg, var(--cyan), var(--violet));
+            box-shadow: 0 0 12px var(--cyan);
+            transition: width .4s;
+        }
+
+        #cnt {
+            position: fixed;
+            bottom: 4.4vh;
+            right: 8.5vw;
+            z-index: 6;
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--dim);
+            letter-spacing: .15em;
+        }
+
+        #hint {
+            position: fixed;
+            bottom: 4.4vh;
+            left: 8.5vw;
+            z-index: 6;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--dim);
+            letter-spacing: .12em;
+            opacity: .8;
+        }
+
+        /* glass panel + bits */
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 2.4vh 1.7vw;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel:before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .28), transparent);
+        }
+
+        .grid {
+            display: grid;
+            gap: 1.1vw;
+        }
+
+        .g3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .g2 {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .g4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .klabel {
+            font-family: var(--mono);
+            font-size: clamp(10px, .95vw, 12.5px);
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--cyan);
+            margin-bottom: 1vh;
+        }
+
+        .panel h3 {
+            font-family: var(--display);
+            font-weight: 600;
+            font-size: clamp(16px, 1.7vw, 22px);
+            margin-bottom: .7vh;
+            color: #fff;
+        }
+
+        .panel p {
+            font-size: clamp(12.5px, 1.25vw, 16px);
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .mono {
+            font-family: var(--mono);
+        }
+
+        .chip {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: 12px;
+            letter-spacing: .05em;
+            color: var(--ink);
+            border: 1px solid var(--line);
+            background: var(--panel);
+            border-radius: 999px;
+            padding: .5vh .9vw;
+            margin: .4vh .3vw 0 0;
+        }
+
+        .chip.amber {
+            color: var(--amber);
+            border-color: rgba(255, 192, 97, .35);
+        }
+
+        .chip.cyan {
+            color: var(--cyan);
+            border-color: rgba(63, 224, 255, .35);
+        }
+
+        .stage-row {
+            display: flex;
+            gap: .7vw;
+            align-items: stretch;
+            margin-top: 3vh;
+            flex-wrap: wrap;
+        }
+
+        .stage {
+            flex: 1;
+            min-width: 120px;
+            position: relative;
+        }
+
+        .stage .n {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--cyan);
+            letter-spacing: .15em;
+        }
+
+        .stage .t {
+            font-family: var(--display);
+            font-weight: 600;
+            font-size: clamp(15px, 1.55vw, 21px);
+            margin-top: .6vh;
+            color: #fff;
+        }
+
+        .stage .d {
+            font-size: clamp(11.5px, 1.15vw, 14.5px);
+            color: var(--muted);
+            margin-top: .5vh;
+            line-height: 1.45;
+        }
+
+        .stage .link {
+            position: absolute;
+            top: 8px;
+            right: -.55vw;
+            color: var(--dim);
+            font-size: 16px;
+        }
+
+        .phase {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: var(--dim);
+            margin: 2.4vh 0 .4vh;
+        }
+
+        ul.flow {
+            list-style: none;
+            margin-top: 2.4vh;
+        }
+
+        ul.flow li {
+            display: flex;
+            gap: 1.1vw;
+            align-items: baseline;
+            margin: 1.8vh 0;
+            font-size: clamp(15px, 1.7vw, 22px);
+            color: var(--ink);
+        }
+
+        ul.flow li .b {
+            font-family: var(--mono);
+            color: var(--cyan);
+            font-size: .7em;
+        }
+
+        .note {
+            margin-top: 3vh;
+            font-size: clamp(13px, 1.35vw, 17px);
+            color: var(--muted);
+            border-left: 2px solid var(--cyan);
+            padding-left: 1.2vw;
+            line-height: 1.5;
+            max-width: 60ch;
+        }
+
+        .note.amber {
+            border-left-color: var(--amber);
+        }
+
+        .note strong {
+            color: #fff;
+        }
+
+        /* signature retrieval viz */
+        .viz {
+            position: absolute;
+            right: 6vw;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 38vw;
+            max-width: 560px;
+        }
+
+        .viz svg {
+            width: 100%;
+            height: auto;
+        }
+
+        .pt {
+            fill: var(--dim);
+        }
+
+        .pt.din {
+            fill: #43557d;
+        }
+
+        .lnk {
+            stroke: #3b4d78;
+            stroke-width: 1;
+            opacity: .5;
+        }
+
+        .active .q {
+            opacity: 0;
+            animation: qin .6s .3s forwards;
+        }
+
+        .active .beam {
+            stroke: var(--cyan);
+            stroke-width: 1.6;
+            opacity: 0;
+            stroke-dasharray: 200;
+            stroke-dashoffset: 200;
+            filter: drop-shadow(0 0 4px var(--cyan));
+        }
+
+        .active .beam.b1 {
+            animation: beam .5s 1.0s forwards;
+        }
+
+        .active .beam.b2 {
+            animation: beam .5s 1.2s forwards;
+        }
+
+        .active .beam.b3 {
+            animation: beam .5s 1.4s forwards;
+        }
+
+        .active .hit {
+            opacity: .35;
+        }
+
+        .active .hit.h1 {
+            animation: hit .5s 1.05s forwards;
+        }
+
+        .active .hit.h2 {
+            animation: hit .5s 1.25s forwards;
+        }
+
+        .active .hit.h3 {
+            animation: hit .5s 1.45s forwards;
+        }
+
+        .active .ctx {
+            opacity: 0;
+            animation: qin .6s 1.9s forwards;
+        }
+
+        @keyframes qin {
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes beam {
+            to {
+                opacity: .9;
+                stroke-dashoffset: 0;
+            }
+        }
+
+        @keyframes hit {
+            to {
+                opacity: 1;
+                fill: var(--cyan);
+                r: 7;
+                filter: drop-shadow(0 0 8px var(--cyan));
+            }
+        }
+
+        .qcore {
+            fill: var(--amber);
+            filter: drop-shadow(0 0 10px var(--amber));
+        }
+
+        .qring {
+            fill: none;
+            stroke: var(--amber);
+            stroke-width: 1.5;
+            opacity: .6;
+        }
+
+        .active .qring {
+            animation: pulse 2.4s 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                r: 10;
+                opacity: .6;
+            }
+
+            70% {
+                r: 26;
+                opacity: 0;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            body.js .scene {
+                transition: none;
+            }
+
+            .active .q,
+            .active .beam,
+            .active .hit,
+            .active .ctx,
+            .active .qring {
+                animation: none !important;
+                opacity: 1 !important;
+                stroke-dashoffset: 0 !important;
+            }
+        }
+
+        /* print / pdf fallback */
+        @media print {
+            @page {
+                size: 1280px 720px;
+                margin: 0;
+            }
+
+            html,
+            body {
+                overflow: visible;
+            }
+
+            #field,
+            #bar,
+            #cnt,
+            #hint {
+                display: none !important;
+            }
+
+            .scene {
+                position: relative;
+                display: flex !important;
+                height: 720px;
+                page-break-after: always;
+                opacity: 1 !important;
+                transform: none !important;
+            }
+
+            .veil {
+                position: absolute;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="field"></canvas>
+    <div class="veil"></div>
+    <div class="wm">Zylo<b>.</b><span class="wm-sub">Technologies</span></div>
+    <div id="bar"></div>
+    <div id="cnt">01 / 13</div>
+    <div id="hint">→ · S notes · F full</div>
+
+    <div class="deck">
+
+        <!-- 1 · TITLE -->
+        <section class="scene"
+            data-notes="Open (~40s). This is the third pillar. Day 5's bot got conversation memory (Supabase); Day 2 gave it tools to act; today it gets a body of knowledge to look things up in. Plant the one line and repeat it all session: RAG turns a closed-book exam into an open-book one. Housekeeping: 20 min concepts, 30 min notebook, 10 min questions. Today's stack is deliberately free-tier: Voyage for embeddings, Qdrant for the vector store, Groq for generation — and no framework yet, we build the pipeline by hand.">
+            <div class="eyebrow">Week 2 · Day 3 · Workshop</div>
+            <h1>Retrieval-<br>Augmented<br><span class="grad">Generation</span></h1>
+            <p class="sub">Stop hoping the model memorised the answer. Hand it the right pages first.</p>
+            <div
+                style="margin-top:4.6vh;font-family:var(--mono);font-size:clamp(12px,1.2vw,15px);letter-spacing:.14em;color:var(--muted)">
+                <span style="color:#fff;font-weight:500">Aznair Manzoor</span> &nbsp;·&nbsp; AI Engineer, Zylo
+                Technologies</div>
+        </section>
+
+        <!-- 2 · THE PROBLEM -->
+        <section class="scene"
+            data-notes="~1.5 min. Callback to Day 4: a model only knows two things — what it saw in training (frozen at a cutoff) and what's in its context window right now. Everything else is a guess. Three consequences, and they're business problems, not trivia: it can't answer from your private docs (the handbook, the tickets, the codebase); it goes stale the day after training; and worst, it doesn't know what it doesn't know, so it fills the gap confidently. That confident gap-filling is hallucination. RAG attacks all three.">
+            <div class="eyebrow">The problem</div>
+            <h2>A model sits a <span class="grad">closed-book exam.</span></h2>
+            <p class="sub">It only knows its training data — frozen at a cutoff — and only sees what's in its context
+                right now.</p>
+            <div class="grid g3" style="margin-top:4vh">
+                <div class="panel">
+                    <div class="klabel">Blind</div>
+                    <p>Can't answer from your private docs. It never saw your handbook, your tickets, your codebase.</p>
+                </div>
+                <div class="panel">
+                    <div class="klabel">Stale</div>
+                    <p>The world moved on the day after training stopped. It doesn't know.</p>
+                </div>
+                <div class="panel">
+                    <div class="klabel">Confident anyway</div>
+                    <p>It doesn't know what it doesn't know — so it fills the gap. That's hallucination.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3 · THE FIX -->
+        <section class="scene"
+            data-notes="~1 min. The whole day in one line. Say it slowly. You don't retrain the model and you don't stuff your entire knowledge base into the prompt. You RETRIEVE only the few passages relevant to this question and place them in the context, then ask the model to answer FROM them. Same lesson as Day 5's 'memory is engineering, not a model feature' — this is context engineering, and it's your job. Pause on 'open-book.'">
+            <div class="eyebrow">The fix</div>
+            <div class="big">Turn it into an <span class="grad">open-book exam.</span></div>
+            <p class="sub" style="max-width:52ch">Retrieve the passages relevant to the question, drop them into the
+                context, and let the model answer <em>from</em> them — with receipts.</p>
+        </section>
+
+        <!-- 4 · THE RAG LOOP -->
+        <section class="scene"
+            data-notes="~2.5 min — the backbone; everything else hangs off this. Two phases. INDEXING is offline, done once (or when docs change): split documents into chunks, embed each chunk into a vector, store them. RETRIEVAL + GENERATION happens every query: embed the question with the SAME model, find the nearest chunks, paste them into the prompt, generate an answer that cites them. Walk it left to right. Note the numbered stages are a real pipeline, not decoration. The rest of the deck zooms into each stage: embeddings, chunking, the store, top-k, hybrid, citations.">
+            <div class="eyebrow">The pipeline</div>
+            <h2>How RAG actually runs</h2>
+            <div class="phase">Phase 1 — indexing · offline, once</div>
+            <div class="stage-row">
+                <div class="stage">
+                    <div class="n">00</div>
+                    <div class="t">Chunk</div>
+                    <div class="d">Split documents into passage-sized pieces.</div><span class="link">→</span>
+                </div>
+                <div class="stage">
+                    <div class="n">01</div>
+                    <div class="t">Embed</div>
+                    <div class="d">Turn each chunk into a vector of meaning.</div><span class="link">→</span>
+                </div>
+                <div class="stage">
+                    <div class="n">02</div>
+                    <div class="t">Store</div>
+                    <div class="d">Load vectors + text + source into a vector DB.</div>
+                </div>
+            </div>
+            <div class="phase">Phase 2 — retrieval + generation · every query</div>
+            <div class="stage-row">
+                <div class="stage">
+                    <div class="n">03</div>
+                    <div class="t">Embed query</div>
+                    <div class="d">Same model as the documents.</div><span class="link">→</span>
+                </div>
+                <div class="stage">
+                    <div class="n">04</div>
+                    <div class="t">Search</div>
+                    <div class="d">Find the nearest chunks (top-k).</div><span class="link">→</span>
+                </div>
+                <div class="stage">
+                    <div class="n">05</div>
+                    <div class="t">Augment</div>
+                    <div class="d">Paste them into the prompt.</div><span class="link">→</span>
+                </div>
+                <div class="stage">
+                    <div class="n">06</div>
+                    <div class="t">Generate</div>
+                    <div class="d">Answer from them, with citations.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5 · EMBEDDINGS -->
+        <section class="scene"
+            data-notes="~2.5 min — the conceptual heart. Keyword search fails because 'car' and 'automobile' share no letters but all meaning. An embedding model reads text and returns a vector — a long list of numbers — positioned so that things with similar MEANING land near each other. Point at the visual: this is a map of meaning; distance is dissimilarity. They don't need the math, they need this intuition plus two facts: similarity is measured by COSINE (the angle between vectors), and you must embed documents and queries with the SAME model or the geometry doesn't line up. Today that model is Voyage.">
+            <div class="eyebrow">Embeddings & vectors</div>
+            <h2 style="max-width:15ch">Meaning becomes <span class="grad">geometry.</span></h2>
+            <p class="sub" style="max-width:34ch">An embedding model turns text into a vector — so passages that
+                <em>mean</em> the same thing sit near each other in space.</p>
+            <div style="margin-top:3vh;display:flex;gap:.6vw;flex-wrap:wrap;max-width:40ch">
+                <span class="chip cyan">cosine = angle between vectors</span>
+                <span class="chip">same model for docs & queries</span>
+                <span class="chip">"car" ≈ "automobile"</span>
+            </div>
+            <div class="viz">
+                <svg viewBox="0 0 460 380" aria-hidden="true">
+                    <line class="lnk" x1="120" y1="90" x2="170" y2="130" />
+                    <line class="lnk" x1="170" y1="130" x2="130" y2="180" />
+                    <line class="lnk" x1="320" y1="250" x2="360" y2="300" />
+                    <line class="lnk" x1="300" y1="300" x2="360" y2="300" />
+                    <line class="lnk" x1="360" y1="120" x2="400" y2="170" />
+                    <circle class="pt din" cx="120" cy="90" r="4" />
+                    <circle class="pt din" cx="170" cy="130" r="4" />
+                    <circle class="pt din" cx="130" cy="180" r="4" />
+                    <circle class="pt" cx="360" cy="120" r="4" />
+                    <circle class="pt" cx="400" cy="170" r="4" />
+                    <circle class="pt" cx="300" cy="300" r="4" />
+                    <circle class="pt" cx="360" cy="300" r="4" />
+                    <circle class="pt din" cx="90" cy="150" r="4" />
+                    <circle class="pt" cx="230" cy="70" r="4" />
+                    <circle class="pt" cx="250" cy="330" r="4" />
+                    <circle class="pt din" cx="200" cy="200" r="4" />
+                    <circle class="pt" cx="410" cy="240" r="4" />
+                    <text x="96" y="70" font-family="JetBrains Mono" font-size="11" fill="#7f8fb5">cluster of related
+                        meaning</text>
+                </svg>
+            </div>
+        </section>
+
+        <!-- 6 · TOP-K / RETRIEVAL MOMENT -->
+        <section class="scene"
+            data-notes="~2 min. This is retrieval itself, and top-k is the knob. Watch the amber query point drop into the space: we pull the k NEAREST chunks — here k=3 — and only those go into the context. Tie it straight to Day 2's context-window theme: k too small and you miss the passage that held the answer; k too big and you flood the context with marginal chunks, which wastes tokens AND can lower accuracy — the 'lost in the middle' effect, where models pay least attention to the middle of a long context. It's an experiment, not a constant. Start around 3 to 5 and tune.">
+            <div class="eyebrow">Retrieval · top-k</div>
+            <h2 style="max-width:16ch">Pull the <span class="amberword">k nearest</span> — nothing more.</h2>
+            <p class="sub" style="max-width:32ch">The query becomes a point too. The <span class="mono"
+                    style="color:var(--amber)">k</span> closest chunks get retrieved into the context.</p>
+            <div style="margin-top:2.5vh;max-width:40ch">
+                <span class="chip amber">k too small → misses the answer</span>
+                <span class="chip amber">k too big → floods context, "lost in the middle"</span>
+                <span class="chip">start at 3–5, then tune</span>
+            </div>
+            <div class="viz">
+                <svg viewBox="0 0 460 380" aria-hidden="true">
+                    <!-- context tray -->
+                    <rect class="ctx" x="300" y="30" width="140" height="66" rx="10" fill="rgba(63,224,255,.07)"
+                        stroke="rgba(63,224,255,.4)" />
+                    <text class="ctx" x="315" y="55" font-family="JetBrains Mono" font-size="11"
+                        fill="#8fe8ff">CONTEXT</text>
+                    <text class="ctx" x="315" y="74" font-family="JetBrains Mono" font-size="10" fill="#6fb8d8">3 chunks
+                        retrieved</text>
+                    <!-- field points -->
+                    <circle class="pt" cx="120" cy="120" r="4" />
+                    <circle class="pt" cx="90" cy="220" r="4" />
+                    <circle class="pt" cx="150" cy="300" r="4" />
+                    <circle class="pt" cx="360" cy="140" r="4" />
+                    <circle class="pt" cx="410" cy="230" r="4" />
+                    <circle class="pt" cx="330" cy="330" r="4" />
+                    <!-- query -->
+                    <circle class="qring q" cx="230" cy="210" r="10" />
+                    <circle class="qcore q" cx="230" cy="210" r="6" />
+                    <!-- nearest 3 -->
+                    <line class="beam b1" x1="230" y1="210" x2="185" y2="150" />
+                    <line class="beam b2" x1="230" y1="210" x2="200" y2="270" />
+                    <line class="beam b3" x1="230" y1="210" x2="290" y2="185" />
+                    <circle class="hit h1 pt" cx="185" cy="150" r="4.5" />
+                    <circle class="hit h2 pt" cx="200" cy="270" r="4.5" />
+                    <circle class="hit h3 pt" cx="290" cy="185" r="4.5" />
+                </svg>
+            </div>
+        </section>
+
+        <!-- 7 · CHUNKING -->
+        <section class="scene"
+            data-notes="~2 min — where RAG quietly succeeds or fails. You can't embed a 50-page PDF as one vector — the meaning smears. So you split it into chunks, and size + overlap are real design decisions. Too big: retrieval gets noisy and the answer is diluted by irrelevant surrounding text. Too small: you sever a passage from the context it needs to make sense. Overlap is the cheap insurance — repeat a little text between chunks so a sentence split across a boundary still lands somewhere whole. This is a knob they'll feel in the notebook: change chunk size, watch retrieval quality move.">
+            <div class="eyebrow">Chunking</div>
+            <h2 style="max-width:17ch">You can't embed a whole book at once.</h2>
+            <p class="sub" style="max-width:44ch">Split documents into passages. Size and overlap decide whether
+                retrieval finds a clean answer or a blurry one.</p>
+            <div class="grid g2" style="margin-top:3.4vh;max-width:60vw">
+                <div class="panel">
+                    <div class="klabel">Chunk too big</div>
+                    <p>Retrieval gets noisy; the real answer is diluted by paragraphs of unrelated text riding along.
+                    </p>
+                </div>
+                <div class="panel">
+                    <div class="klabel">Chunk too small</div>
+                    <p>You sever a passage from the context it needs — the model gets a fragment that no longer means
+                        anything.</p>
+                </div>
+            </div>
+            <div class="note"><strong>Overlap</strong> is cheap insurance: repeat a little text across boundaries so a
+                sentence split down the middle still survives in one piece.</div>
+        </section>
+
+        <!-- 8 · VECTOR DB -->
+        <section class="scene"
+            data-notes="~2 min. Why not just keep vectors in a Python list and loop? Because comparing a query against millions of vectors one by one is far too slow. A vector database does fast approximate nearest-neighbour search — it finds the closest points without checking every one. We use Qdrant today: a real, purpose-built vector DB with a generous free tier, and it runs in-memory in the notebook with zero setup. The key idea beyond speed: each stored point carries the vector PLUS the original text PLUS metadata — source, page, section. That metadata is what makes citations and filtering possible later. Name the alternatives so they know the landscape, but we're on Qdrant.">
+            <div class="eyebrow">Vector databases</div>
+            <h2 style="max-width:18ch">A Python list won't survive a million vectors.</h2>
+            <p class="sub" style="max-width:46ch">Vector DBs do fast approximate nearest-neighbour search — the closest
+                points, without scanning every one.</p>
+            <div class="grid g3" style="margin-top:3.4vh">
+                <div class="panel">
+                    <div class="klabel" style="color:var(--amber)">Qdrant · today</div>
+                    <p>A real, purpose-built vector DB. Free tier, and runs in-memory in your notebook with zero setup.
+                    </p>
+                </div>
+                <div class="panel">
+                    <div class="klabel">Each point holds</div>
+                    <p><span class="mono" style="color:var(--cyan)">vector</span> + <span class="mono"
+                            style="color:var(--cyan)">text</span> + <span class="mono"
+                            style="color:var(--cyan)">metadata</span>. The metadata is what powers citations and
+                        filters.</p>
+                </div>
+                <div class="panel">
+                    <div class="klabel">Also out there</div>
+                    <p>Pinecone, Weaviate, Chroma, Milvus, FAISS. Same core job, different trade-offs.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 9 · HYBRID SEARCH -->
+        <section class="scene"
+            data-notes="~2 min. Semantic search has a blind spot: because it works on meaning, it blurs exact tokens. Ask for error code 'E-4021' or a part number or a person's surname, and the nearest-by-meaning chunk may not be the one with that exact string. Keyword search — BM25, classic full-text — is the opposite: it nails exact terms but is deaf to synonyms and intent. Hybrid runs BOTH and fuses the two ranked lists. The standard trick is Reciprocal Rank Fusion: it ignores the incomparable raw scores and rewards documents that rank high in EITHER list. In the notebook you'll see hybrid win on an exact-code query where pure semantic search misses. Mention re-ranking as the next step up: a sharper model reorders the top candidates.">
+            <div class="eyebrow">Hybrid search</div>
+            <h2 style="max-width:16ch">Meaning is not enough.</h2>
+            <p class="sub" style="max-width:40ch">Semantic search blurs exact tokens — a code like <span class="mono"
+                    style="color:var(--amber)">E-4021</span>, a name, an acronym. Keyword search nails those but misses
+                meaning.</p>
+            <div class="grid g3" style="margin-top:3.2vh">
+                <div class="panel">
+                    <div class="klabel cyan">Dense · semantic</div>
+                    <p>Vectors. Understands "lift" ≈ "elevator." Blurry on exact strings.</p>
+                </div>
+                <div class="panel">
+                    <div class="klabel">Sparse · keyword</div>
+                    <p>BM25. Nails "E-4021" and part numbers. Deaf to synonyms.</p>
+                </div>
+                <div class="panel">
+                    <div class="klabel amber" style="color:var(--amber)">Hybrid · fused</div>
+                    <p>Run both, merge with <span class="mono">RRF</span> — rewards what ranks high in either.</p>
+                </div>
+            </div>
+            <div class="note"><strong>Next step up:</strong> re-ranking — a sharper model reorders the top candidates
+                before they reach the prompt.</div>
+        </section>
+
+        <!-- 10 · CITATIONS -->
+        <section class="scene"
+            data-notes="~2 min — RAG's trust payoff. Because you retrieved specific chunks with known sources, you can make the model cite them: 'according to the handbook, page 3.' This is the superpower a bare LLM can't match — answers become VERIFIABLE, and it's your strongest weapon against hallucination from Day 4. The discipline is four habits: keep source metadata on every chunk from the start; instruct the model to answer ONLY from the retrieved context; make it cite the chunks it used; and make it say 'I don't know' when the answer isn't there. Then validate, because it can still stray — grounding is a strong default, not a guarantee.">
+            <div class="eyebrow">Citations & grounding</div>
+            <h2 style="max-width:17ch">Answers with <span class="amberword">receipts.</span></h2>
+            <p class="sub" style="max-width:42ch">You retrieved known sources — so the model can point back to them.
+                Verifiable beats plausible.</p>
+            <div class="grid g4" style="margin-top:3.4vh">
+                <div class="panel">
+                    <div class="klabel">Keep metadata</div>
+                    <p>Source & page on every chunk, from the start.</p>
+                </div>
+                <div class="panel">
+                    <div class="klabel">Answer from context</div>
+                    <p>Only from what was retrieved — nothing invented.</p>
+                </div>
+                <div class="panel">
+                    <div class="klabel">Cite it</div>
+                    <p><span class="mono" style="color:var(--amber)">[handbook · p.3]</span> next to the claim.</p>
+                </div>
+                <div class="panel">
+                    <div class="klabel">Say "I don't know"</div>
+                    <p>When it isn't in the context. Then validate.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 11 · NOT MAGIC -->
+        <section class="scene"
+            data-notes="~1.5 min — the honest beat, and the throughline of the whole program. RAG is only as good as what retrieval hands the model. Garbage chunks in, garbage answer out — and no clever prompt saves you from that. The model can also just ignore the context you gave it. Chunking, the embedding model, k, and your search strategy all need tuning against real questions. So RAG is a SYSTEM you engineer and measure, not a switch you flip. That's the perfect setup for tomorrow: Day 4 is how you MEASURE retrieval — precision, recall, and evaluation — so you're tuning with numbers, not vibes.">
+            <div class="eyebrow">The honest part</div>
+            <h2 style="max-width:15ch">RAG is a <span class="grad">system,</span> not a switch.</h2>
+            <div class="grid g3" style="margin-top:3.6vh">
+                <div class="panel">
+                    <div class="klabel">Garbage in, garbage out</div>
+                    <p>The answer can't beat the chunks retrieval found. No prompt rescues bad retrieval.</p>
+                </div>
+                <div class="panel">
+                    <div class="klabel">It can still ignore you</div>
+                    <p>Context is provided, not obeyed. You verify.</p>
+                </div>
+                <div class="panel">
+                    <div class="klabel">Everything's a knob</div>
+                    <p>Chunking, embeddings, k, search strategy — all need tuning on real questions.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 12 · TASK -->
+        <section class="scene"
+            data-notes="~1 min. The build (extends past the 30-min notebook — it's the day's task). Read the four requirements; the full brief is in the notebook. Stress requirement 2 (grounding + citations + 'I don't know') and requirement 4 (prove hybrid beats semantic on an exact-token query) — those are the judgment, not the plumbing. Free stack: Voyage embeddings, Qdrant store, Groq generation. No LangChain — build the pipeline by hand so you understand every stage. Deliverable is the pipeline plus a short RAG.md with your chunk size, your k, and the hybrid-vs-semantic query where the difference showed up.">
+            <div class="eyebrow">Your task — build it</div>
+            <h2 style="max-width:20ch">Build a RAG pipeline that cites its sources</h2>
+            <div class="grid g2" style="margin-top:2.8vh;gap:1.2vh 1.1vw">
+                <div class="panel">
+                    <div class="klabel cyan">1 · Index a small corpus</div>
+                    <p>Chunk documents (choose size + overlap), embed with Voyage, store in Qdrant with source metadata.
+                    </p>
+                </div>
+                <div class="panel">
+                    <div class="klabel cyan">2 · Retrieve & ground</div>
+                    <p>Embed the query, pull top-k, answer with Groq <em>only</em> from context — with citations, and "I
+                        don't know" when absent.</p>
+                </div>
+                <div class="panel">
+                    <div class="klabel cyan">3 · Feel the knobs</div>
+                    <p>Change <span class="mono">k</span> and chunk size; show how retrieval and the answer move.</p>
+                </div>
+                <div class="panel">
+                    <div class="klabel cyan">4 · Prove hybrid</div>
+                    <p>Find a query with an exact code/name where hybrid beats pure semantic. Report it.</p>
+                </div>
+            </div>
+            <div style="margin-top:2.2vh">
+                <span class="chip amber">Voyage · embeddings</span><span class="chip amber">Qdrant · vector
+                    store</span><span class="chip amber">Groq · generation</span><span class="chip">no framework — build
+                    it by hand</span>
+            </div>
+        </section>
+
+        <!-- 13 · RECAP -->
+        <section class="scene"
+            data-notes="~30s + Q&A. Land the one idea: retrieval quality is the whole game — a RAG system is only as good as the chunks it puts in front of the model. And the image to keep: meaning has geometry, retrieval is just finding what's near. Then set up tomorrow: Day 4 makes it measurable — precision, recall, and how to evaluate retrieval so you tune with numbers. Open the floor for 10 minutes, then into the notebook. If it's quiet, seed it: 'where would hybrid have saved a query you've hit?' or 'what would you chunk your own docs by?'">
+            <div class="eyebrow">The one idea to keep</div>
+            <div class="big" style="max-width:24ch">Retrieval quality is the <span class="grad">whole game.</span></div>
+            <p class="sub" style="max-width:52ch">A RAG system is only as good as the chunks it puts in front of the
+                model. <span style="color:var(--muted)">Tomorrow — Day 4: make it measurable. Precision, recall,
+                    evaluation.</span></p>
+            <p style="margin-top:4vh;font-family:var(--mono);font-size:13px;color:var(--dim);letter-spacing:.12em">
+                QUESTIONS &nbsp;·&nbsp; then open the notebook</p>
+            <p style="margin-top:1.4vh;font-family:var(--mono);font-size:13px;color:var(--muted);letter-spacing:.12em">
+                <span style="color:#fff">Aznair Manzoor</span> &nbsp;·&nbsp; AI Engineer, Zylo Technologies</p>
+        </section>
+
+    </div>
+
+    <!-- speaker notes overlay -->
+    <div id="notes" style="display:none;"></div>
+    <style>
+        #notes.on {
+            display: block;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 20;
+            max-height: 44vh;
+            overflow: auto;
+            background: rgba(6, 10, 21, .94);
+            border-top: 2px solid var(--cyan);
+            backdrop-filter: blur(8px);
+            padding: 2.4vh 8.5vw;
+            font-family: var(--body);
+            font-size: 15px;
+            line-height: 1.55;
+            color: #cfe0f5;
+        }
+
+        #notes.on:before {
+            content: "SPEAKER NOTES — press S to hide";
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: .2em;
+            color: var(--dim);
+            display: block;
+            margin-bottom: 1vh;
+        }
+    </style>
+
+    <script>
+        (function () {
+            document.body.classList.add('js');
+            var scenes = [].slice.call(document.querySelectorAll('.scene'));
+            var i = 0, bar = document.getElementById('bar'), cnt = document.getElementById('cnt'), notes = document.getElementById('notes');
+            function pad(n) { return (n < 10 ? '0' : '') + n; }
+            function show(n) {
+                i = Math.max(0, Math.min(scenes.length - 1, n));
+                scenes.forEach(function (s, k) { s.classList.toggle('active', k === i); });
+                cnt.textContent = pad(i + 1) + ' / ' + pad(scenes.length);
+                bar.style.width = ((i + 1) / scenes.length * 100) + '%';
+                if (notes.classList.contains('on')) notes.textContent = scenes[i].getAttribute('data-notes') || '';
+            }
+            document.addEventListener('keydown', function (e) {
+                var k = e.key;
+                if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); show(i + 1); }
+                else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); show(i - 1); }
+                else if (k === 'Home') { show(0); } else if (k === 'End') { show(scenes.length - 1); }
+                else if (k === 's' || k === 'S') { notes.classList.toggle('on'); notes.textContent = scenes[i].getAttribute('data-notes') || ''; }
+                else if (k === 'f' || k === 'F') {
+                    e.preventDefault();
+                    var el = document.documentElement;
+                    if (!document.fullscreenElement) { (el.requestFullscreen || el.webkitRequestFullscreen || function () { }).call(el); }
+                    else { (document.exitFullscreen || document.webkitExitFullscreen || function () { }).call(document); }
+                }
+            });
+            document.addEventListener('click', function (e) {
+                if (e.target.closest('a,#notes')) return;
+                show(e.clientX / window.innerWidth > 0.42 ? i + 1 : i - 1);
+            });
+            show(0);
+
+            // ambient vector field
+            var c = document.getElementById('field'), x = c.getContext('2d'), W, H, pts, raf;
+            var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            function rz() {
+                W = c.width = innerWidth; H = c.height = innerHeight;
+                var n = Math.min(72, Math.floor(W * H / 26000));
+                pts = Array.from({ length: n }, function () {
+                    return {
+                        x: Math.random() * W, y: Math.random() * H,
+                        vx: (Math.random() - .5) * .14, vy: (Math.random() - .5) * .14
+                    };
+                });
+            }
+            function draw() {
+                x.clearRect(0, 0, W, H);
+                for (var p, k = 0; k < pts.length; k++) {
+                    p = pts[k]; p.x += p.vx; p.y += p.vy;
+                    if (p.x < 0 || p.x > W) p.vx *= -1; if (p.y < 0 || p.y > H) p.vy *= -1;
+                }
+                for (var a = 0; a < pts.length; a++)for (var b = a + 1; b < pts.length; b++) {
+                    var dx = pts[a].x - pts[b].x, dy = pts[a].y - pts[b].y, d = Math.sqrt(dx * dx + dy * dy);
+                    if (d < 140) {
+                        x.globalAlpha = (1 - d / 140) * .16; x.strokeStyle = '#5f7bd0'; x.lineWidth = 1;
+                        x.beginPath(); x.moveTo(pts[a].x, pts[a].y); x.lineTo(pts[b].x, pts[b].y); x.stroke();
+                    }
+                }
+                x.globalAlpha = .75;
+                for (var q = 0; q < pts.length; q++) {
+                    x.fillStyle = q % 9 === 0 ? '#3FE0FF' : '#6f86c9';
+                    x.beginPath(); x.arc(pts[q].x, pts[q].y, q % 9 === 0 ? 1.8 : 1.3, 0, 7); x.fill();
+                }
+                raf = requestAnimationFrame(draw);
+            }
+            rz(); draw();
+            if (reduce) { cancelAnimationFrame(raf); }
+            addEventListener('resize', function () { rz(); if (reduce) { x.clearRect(0, 0, W, H); } });
+        })();
+    </script>
+</body>
+
+</html>

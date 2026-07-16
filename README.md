@@ -5,6 +5,9 @@ IronChat is a modern, responsive, and elegant AI chatbot application designed fo
 ## Features
 
 - **Blazing Fast AI Responses**: Powered by Llama-3 70b via Groq for near-instant inference.
+- **Intelligent Routing**: Features an advanced LLM-based router that automatically classifies queries, routing them to the internal knowledge base, web search, or standard chat based on context.
+- **Document QA (RAG)**: Seamlessly search internal documentation and PDF context using Voyage AI embeddings stored in a Qdrant vector database.
+- **Live Web Research**: Manually toggleable web search integration powered by Tavily, allowing the assistant to pull live news, facts, and events directly into the conversation.
 - **Premium UI/UX**: Built with Tailwind CSS v4, featuring a glassmorphic dashboard, responsive layout, dark/light mode toggles, and smooth micro-animations.
 - **Secure Authentication**: Built-in user sign up, login, and session management using JWT access and refresh tokens.
 - **Optimized Backend**: A robust FastAPI backend integrated with PostgreSQL (via Supabase), using advanced async SQLModel techniques and CTEs to minimize latency.
@@ -23,7 +26,10 @@ IronChat is a modern, responsive, and elegant AI chatbot application designed fo
 - FastAPI
 - SQLModel / SQLAlchemy (Asyncpg)
 - PostgreSQL (AWS/Supabase)
-- AsyncGroq API
+- AsyncGroq API (Inference)
+- Voyage AI (Embeddings)
+- Qdrant (Vector Database)
+- Tavily (Web Search API)
 
 ## Getting Started
 
@@ -32,7 +38,7 @@ IronChat is a modern, responsive, and elegant AI chatbot application designed fo
 - Node.js (v18 or higher)
 - Python 3.10+
 - PostgreSQL database
-- Groq API Key
+- API Keys: Groq, Voyage AI, Tavily, and a Qdrant Cluster URL
 
 ### Installation
 
@@ -54,6 +60,10 @@ IronChat is a modern, responsive, and elegant AI chatbot application designed fo
    DATABASE_URL="postgresql+asyncpg://user:pass@host/db"
    GROQ_API_KEY="your_groq_api_key"
    JWT_SECRET_KEY="your_jwt_secret"
+   VOYAGE_API_KEY="your_voyage_api_key"
+   TAVILY_API_KEY="your_tavily_api_key"
+   QDRANT_URL="your_qdrant_cluster_url"
+   QDRANT_API_KEY="your_qdrant_api_key"
    ```
    Start the backend:
    ```bash

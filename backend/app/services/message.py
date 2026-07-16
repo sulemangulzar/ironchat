@@ -15,9 +15,16 @@ from app.schemas.message import SendMessage
 from app.api.v1.web_search import search_web
 
 
-# ─── System Prompt ────────────────────────────────────────────────────────────
+from app.core.voyage import embed_text          
+from app.core.qdrant import qdrant_client      
 
-# System prompt used when web research is OFF — no mention of tools
+RAG_COLLECTION_NAME = "ironchat_docs" 
+
+
+# ============================================================
+# SYSTEM PROMPTS
+# ============================================================
+
 SYSTEM_PROMPT = """
 You are IronChat, an accurate and helpful AI assistant.
 
@@ -29,7 +36,6 @@ Answer from your own knowledge confidently and directly. If you are genuinely un
 - Use Markdown. Be concise for short questions. Use headings for long answers.
 """
 
-# System prompt used when web research is ON — final answer prompt after search results are injected
 RESEARCH_SYSTEM_PROMPT = """
 You are IronChat, an accurate and helpful AI assistant with access to real-time web search results.
 
@@ -46,20 +52,35 @@ Web search results have been injected into this conversation as [SEARCH RESULTS]
 - Always include the ## Sources section at the very end.
 """
 
-# Prompt for the lightweight decision call — asks for plain JSON, no tool schema needed
-DECISION_PROMPT = """You are a routing assistant. Your job is to decide if the user's LATEST message requires a live web search.
+
+RAG_SYSTEM_PROMPT = """
+You are IronChat, an accurate and helpful AI assistant.
+
+You have been given relevant excerpts from IronChat's own documentation, injected below as [DOCUMENT CONTEXT].
+Answer the user's question using ONLY that context.
+
+- If the answer isn't in the context, say "I don't have that information in the documentation."
+- Do not make up details that aren't in the context.
+
+## Style
+- Use Markdown. Be concise and clear.
+"""
+
+ROUTING_PROMPT = """You are an intelligent routing assistant. Your job is to classify the user's LATEST message to determine how it should be answered.
 You will see the conversation history for context, but you must ONLY base your decision on the LATEST message.
 
-Reply with ONLY valid JSON — no explanation, no markdown, no extra text:
-{"search": true, "query": "standalone search query with context resolved (e.g. 'Elon Musk net worth' instead of 'his net worth')"}
-OR
-{"search": false}
+Reply with ONLY valid JSON — no explanation, no markdown, no extra text. Choose ONE of the following three formats:
 
-Search when the latest message needs: current news, live prices, today's events, recent statistics, or real-time data.
-Do NOT search for: programming help, general knowledge, writing tasks, or anything answerable from training data."""
+1. Web Search Route (Current events, news, live prices, recent stats):
+{"mode": "search", "query": "standalone search query with context resolved (e.g. 'Elon Musk net worth' instead of 'his net worth')"}
 
+2. Documentation Route (Questions specifically about IronChat, its architecture, features, tech stack, or documentation):
+{"mode": "rag"}
 
-# ─── Service ──────────────────────────────────────────────────────────────────
+3. Simple Chat Route (General knowledge, programming help, writing tasks, or conversational chat):
+{"mode": "simple"}
+"""
+
 
 class MessageService:
 
@@ -68,9 +89,8 @@ class MessageService:
         self.chat_repository = chat_repository
         self.groq_client = AsyncGroq(api_key=settings.GROQ_API_KEY)
 
-    # ── Public Methods ────────────────────────────────────────────────────────
-
     async def get_messages(self, chat_id: UUID, user_id: UUID):
+        """Fetch all past messages for a chat, formatted for the frontend."""
         messages = await self.repository.get_all_messages_for_user(chat_id, user_id)
         return [
             {
@@ -89,30 +109,34 @@ class MessageService:
         user_id: UUID,
         background_tasks: BackgroundTasks,
     ):
+        """
+        Entry point: called whenever the user sends a new message.
+        Builds the conversation history + system prompt, then hands off
+        to _stream_response() which does the actual thinking/searching/answering.
+        """
         chat = await self.chat_repository.get_one_chat(user_id, chat_id)
         history = await self.repository.get_all_messages(chat_id)
 
-        # Keep last 10 messages to avoid hitting Groq's token-per-minute limit
+        # Only keep the last 10 messages, so the prompt doesn't grow forever
         history = history[-10:]
         prompt_text = user_prompt.content
 
-        # Update the chat title on the first message
+        # If this is the first message in the chat, auto-generate a short title
         if not history:
             asyncio.create_task(self._update_title(chat_id, user_id, prompt_text))
 
-        # Save the user's message to the database
         await self.repository.save_message(chat_id, Role.USER, prompt_text)
 
-        # Build the messages list for the LLM
-        # Use research prompt when search is enabled, plain prompt otherwise
-        system_prompt = RESEARCH_SYSTEM_PROMPT if user_prompt.enable_search else SYSTEM_PROMPT
-        messages = [{"role": "system", "content": system_prompt}]
-        messages += [{"role": m.role.value, "content": m.content} for m in history]
+        # We assemble the user history. The system prompt will be decided by the router
+        # inside _stream_response.
+        messages = [{"role": m.role.value, "content": m.content} for m in history]
         messages.append({"role": "user", "content": prompt_text})
 
-        return self._stream_response(chat, messages, enable_search=user_prompt.enable_search)
-
-    # ── Private Methods ───────────────────────────────────────────────────────
+        return self._stream_response(
+            chat,
+            messages,
+            enable_search=user_prompt.enable_search
+        )
 
     async def _update_title(self, chat_id: UUID, user_id: UUID, prompt_text: str):
         """Generate and save a short title for a new chat."""
@@ -136,54 +160,103 @@ class MessageService:
             logging.error(f"Search failed: {e}")
             return {"results": []}
 
-    async def _stream_response(self, chat, messages: list, enable_search: bool = False):
+    # ============================================================
+    # NEW: RAG retrieval — mirrors _run_search() exactly, but for documents
+    # ============================================================
+    async def _run_rag_retrieval(self, question: str, top_k: int = 3) -> list[str]:
         """
-        The main response generator.
+        Embed the user's question, search Qdrant for the closest document
+        chunks, and return their raw text. Returns [] if nothing useful found.
+        """
+        try:
+            question_vector = await asyncio.to_thread(embed_text, question)
 
-        Flow:
-          1. Ask the LLM (with tool access) whether to search or answer directly.
-          2. If it wants to search → run the search, inject results, stream the final answer.
-          3. If it answers directly → stream that answer.
+            results = await qdrant_client.query_points(
+                collection_name=RAG_COLLECTION_NAME,
+                query=question_vector,
+                limit=top_k,
+            )
+
+            chunks = [point.payload["text"] for point in results.points]
+            return chunks
+
+        except Exception as e:
+            logging.error(f"RAG retrieval failed: {e}")
+            return []
+
+    async def _stream_response(
+        self,
+        chat,
+        messages: list,
+        enable_search: bool = False
+    ):
+        """
+        The main response generator with intelligent routing.
         """
         def sse(data: dict) -> str:
+            """Format a dict as a Server-Sent Event line."""
             return f"data: {json.dumps(data)}\n\n"
 
         full_content = ""
         citations = []
 
         try:
-            query = None
-            citations = []
-
-            # ── Step 1: Decide whether to search (only when user enabled it) ──
+            # 1. Routing phase
+            # By default, use simple chat instructions
+            messages.insert(0, {"role": "system", "content": SYSTEM_PROMPT})
+            
+            # Construct dynamic routing prompt based on whether Web Search is enabled
+            options_text = ""
             if enable_search:
-                # Build a history for the decision model so it can resolve pronouns (e.g. "his age")
-                # but replace the main system prompt with the DECISION_PROMPT
-                decision_messages = [{"role": "system", "content": DECISION_PROMPT}]
-                decision_messages += [m for m in messages if m["role"] != "system"]
+                options_text = """1. Web Search Route (Current events, news, live prices, recent stats):
+{"mode": "search", "query": "standalone search query with context resolved (e.g. 'Elon Musk net worth' instead of 'his net worth')"}
 
-                # Ask a tiny routing model to return plain JSON — no tool schema,
-                # no format issues, completely reliable.
-                decision_resp = await self.groq_client.chat.completions.create(
-                    model=chat.model,
-                    messages=decision_messages,
-                    temperature=0,       # deterministic
-                    max_tokens=64,       # {"search": true, "query": "..."} fits in 64 tokens
-                    stream=False,
-                )
+2. Documentation Route (Questions specifically about IronChat, its architecture, features, tech stack, or documentation):
+{"mode": "rag"}
 
-                raw = decision_resp.choices[0].message.content or ""
-                try:
-                    # Strip markdown fences if the model wraps in ```json ... ```
-                    clean = raw.strip().strip("```json").strip("```").strip()
-                    decision = json.loads(clean)
-                    if decision.get("search") and decision.get("query"):
-                        query = decision["query"]
-                except Exception:
-                    logging.warning(f"Could not parse search decision JSON: {raw!r} — skipping search")
+3. Simple Chat Route (General knowledge, programming help, writing tasks, or conversational chat):
+{"mode": "simple"}"""
+            else:
+                options_text = """1. Documentation Route (Questions specifically about IronChat, its architecture, features, tech stack, or documentation):
+{"mode": "rag"}
 
-            # ── Step 2: Run search if decided ────────────────────────────────
-            if query:
+2. Simple Chat Route (General knowledge, programming help, writing tasks, or conversational chat):
+{"mode": "simple"}"""
+
+            dynamic_routing_prompt = f"""You are an intelligent routing assistant. Your job is to classify the user's LATEST message to determine how it should be answered.
+You will see the conversation history for context, but you must ONLY base your decision on the LATEST message.
+
+Reply with ONLY valid JSON — no explanation, no markdown, no extra text. Choose ONE of the following formats:
+
+{options_text}
+"""
+
+            decision_messages = [{"role": "system", "content": dynamic_routing_prompt}]
+            decision_messages += [m for m in messages if m["role"] != "system"]
+
+            decision_resp = await self.groq_client.chat.completions.create(
+                model=chat.model,
+                messages=decision_messages,
+                temperature=0,
+                max_tokens=64,
+                stream=False,
+            )
+
+            raw = decision_resp.choices[0].message.content or ""
+            mode = "simple"
+            query = None
+
+            try:
+                clean = raw.strip().strip("```json").strip("```").strip()
+                decision = json.loads(clean)
+                mode = decision.get("mode", "simple")
+                if mode == "search" and decision.get("query"):
+                    query = decision["query"]
+            except Exception:
+                logging.warning(f"Could not parse routing decision JSON: {raw!r} — defaulting to simple")
+
+            # 2. Execution phase based on route
+            if mode == "search" and query:
                 yield sse({"type": "status", "status": "searching",
                            "message": "Searching the web", "query": query})
 
@@ -203,16 +276,30 @@ class MessageService:
                     yield sse({"type": "status", "status": "reading",
                                "message": f"Reviewing {len(sources)} sources"})
 
-                # Inject results as a plain user-readable block — no tool message needed
                 search_block = f"\n\n[SEARCH RESULTS for: {query}]\n"
                 for i, src in enumerate(sources, 1):
                     search_block += f"\n[{i}] {src.get('title', '')}\nURL: {src.get('url', '')}\n{src.get('content', '')[:400]}\n"
 
-                # Append results to the conversation and switch to research prompt
                 messages[0]["content"] = RESEARCH_SYSTEM_PROMPT
                 messages.append({"role": "user", "content": search_block})
 
-            # ── Step 3: Stream the final answer ──────────────────────────────
+            elif mode == "rag":
+                latest_question = messages[-1]["content"]
+
+                yield sse({"type": "status", "status": "retrieving",
+                           "message": "Checking IronChat documentation"})
+
+                retrieved_chunks = await self._run_rag_retrieval(latest_question)
+
+                if retrieved_chunks:
+                    context_block = "\n\n[DOCUMENT CONTEXT]\n" + "\n---\n".join(retrieved_chunks)
+
+                    messages[0]["content"] = RAG_SYSTEM_PROMPT
+                    messages.append({"role": "user", "content": context_block})
+                else:
+                    logging.info("RAG retrieval returned no chunks — answering without document context")
+
+            # ---------- FINAL ANSWER (unchanged, just runs after whichever context was added) ----------
             final_stream = await self.groq_client.chat.completions.create(
                 model=chat.model,
                 messages=messages,
@@ -228,7 +315,6 @@ class MessageService:
                     full_content += text
                     yield sse({"type": "content", "delta": text})
 
-            # ── Step 4: Send citations and finish ─────────────────────────
             if citations:
                 seen, unique = set(), []
                 for c in citations:
@@ -251,4 +337,3 @@ class MessageService:
         except Exception as e:
             logging.error(f"Response generation error: {e}")
             yield sse({"type": "error", "message": "Something went wrong. Please try again."})
-

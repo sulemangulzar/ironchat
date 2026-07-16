@@ -20,6 +20,17 @@ class Settings(BaseSettings):
     LLM_MAX_TOKENS : int = 1024
     LLM_TOP_P : float = 0.9
 
+
+    QDRANT_API_KEY : str
+    QDRANT_URL : str
+    QDRANT_COLLECTION : str
+
+    VOYAGE_API_KEY : str
+   
+    SUPABASE_REST_URL : str
+    SUPABASE_BUCKET : str
+    SUPABASE_SERVICE_ROLE_KEY : str
+
     @property
     def async_database_url(self) -> str:
         database_url = self.DATABASE_URL.strip().strip('"').strip("'")

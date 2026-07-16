@@ -1,7 +1,8 @@
 import { useRef, useEffect } from 'react'
 
-function MessageInput({ disabled, message, setMessage, sendMessage, isLoading, enableSearch, setEnableSearch }) {
+function MessageInput({ activeChat, disabled, message, setMessage, sendMessage, isLoading, enableSearch, setEnableSearch, onFocus }) {
   const textareaRef = useRef(null)
+
 
   useEffect(() => {
     if (textareaRef.current) {

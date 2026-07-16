@@ -1,7 +1,7 @@
 from uuid import UUID
 from app.models import Chat
 from app.repositories.chat import ChatRepository
-
+from fastapi import BackgroundTasks
 class ChatService:
     def __init__(self, repositroy : ChatRepository):
         self.repository = repositroy
@@ -17,7 +17,7 @@ class ChatService:
     async def get_one(self, user_id : UUID, chat_id : UUID):
         return await self.repository.get_one_chat(user_id, chat_id)
 
-    async def delete_chat(self, user_id: UUID, chat_id: UUID):
+    async def delete_chat(self, user_id: UUID, chat_id: UUID, background_tasks: BackgroundTasks = None):
         # Optimized: Delete messages and chat in a single round-trip without fetching first
         await self.repository.delete_chat_by_id(user_id, chat_id)
 

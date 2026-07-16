@@ -62,6 +62,7 @@ function ChatWindow({ activeChat, isActionLoading, isChatLoading, isLoading, mes
       </div>
 
       <MessageInput
+        activeChat={activeChat}
         disabled={isChatLoading || isActionLoading}
         message={message}
         setMessage={setMessage}
