@@ -1,0 +1,85 @@
+[
+    {
+        "id": 1,
+        "query": "What is IronChat?",
+        "relevant_chunk_ids": [
+            0
+        ]
+    },
+    {
+        "id": 2,
+        "query": "Which AI model does IronChat use?"
+    },
+    {
+        "id": 3,
+        "query": "How does the PDF chat feature work?"
+    },
+    {
+        "id": 4,
+        "query": "What happens after I upload a PDF?"
+    },
+    {
+        "id": 5,
+        "query": "Which vector database is used in IronChat?"
+    },
+    {
+        "id": 6,
+        "query": "How are PDF documents converted into embeddings?"
+    },
+    {
+        "id": 7,
+        "query": "Which library extracts text from uploaded PDFs?"
+    },
+    {
+        "id": 8,
+        "query": "How does IronChat decide when to perform a web search?"
+    },
+    {
+        "id": 9,
+        "query": "Which API is responsible for live web search?"
+    },
+    {
+        "id": 10,
+        "query": "Where are uploaded PDF files stored?"
+    },
+    {
+        "id": 11,
+        "query": "How are users authenticated?"
+    },
+    {
+        "id": 12,
+        "query": "Which database does the backend use?"
+    },
+    {
+        "id": 13,
+        "query": "How are AI responses streamed to the frontend?"
+    },
+    {
+        "id": 14,
+        "query": "What frontend technologies are used in IronChat?"
+    },
+    {
+        "id": 15,
+        "query": "Where is the frontend and backend deployed?"
+    },
+    {
+        "id": 16,
+        "query": "Explain the complete RAG pipeline."
+    },
+    {
+        "id": 17,
+        "query": "Does IronChat support image uploads for visual question answering?"
+    },
+    {
+        "id": 18,
+        "query": "Which payment gateway does IronChat use?"
+    },
+    {
+        "id": 19,
+        "query": "Can IronChat generate images using Stable Diffusion?"
+    },
+    {
+        "id": 20,
+        "query": "Does IronChat support voice conversations?"
+    }
+]
