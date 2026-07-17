@@ -2,84 +2,121 @@
     {
         "id": 1,
         "query": "What is IronChat?",
-        "relevant_chunk_ids": [
-            0
-        ]
+        "expected_answer": "IronChat is a chat application that supports PDF uploads, web search, and RAG capabilities.",
+        "category": "standard"
     },
     {
         "id": 2,
-        "query": "Which AI model does IronChat use?"
+        "query": "Which AI model does IronChat use?",
+        "expected_answer": "IronChat uses the llama-3.3-70b-versatile model.",
+        "category": "standard"
     },
     {
         "id": 3,
-        "query": "How does the PDF chat feature work?"
+        "query": "How does the PDF chat feature work?",
+        "expected_answer": "You can upload a PDF, which is processed, chunked, and stored in a vector database to provide context for your questions.",
+        "category": "standard"
     },
     {
         "id": 4,
-        "query": "What happens after I upload a PDF?"
+        "query": "What happens after I upload a PDF?",
+        "expected_answer": "The PDF is parsed to extract text, divided into chunks, embedded into vectors, and saved into a Qdrant collection.",
+        "category": "standard"
     },
     {
         "id": 5,
-        "query": "Which vector database is used in IronChat?"
+        "query": "Which vector database is used in IronChat?",
+        "expected_answer": "IronChat uses Qdrant as its vector database.",
+        "category": "standard"
     },
     {
         "id": 6,
-        "query": "How are PDF documents converted into embeddings?"
+        "query": "How are PDF documents converted into embeddings?",
+        "expected_answer": "PDF text chunks are converted into embeddings using Voyage AI.",
+        "category": "standard"
     },
     {
         "id": 7,
-        "query": "Which library extracts text from uploaded PDFs?"
+        "query": "Which library extracts text from uploaded PDFs?",
+        "expected_answer": "IronChat uses pdfplumber to extract text.",
+        "category": "standard"
     },
     {
         "id": 8,
-        "query": "How does IronChat decide when to perform a web search?"
+        "query": "How does IronChat decide when to perform a web search?",
+        "expected_answer": "IronChat uses a tool calling or routing step to perform a web search if the user's question requires up-to-date or real-world information not present in the provided PDFs.",
+        "category": "standard"
     },
     {
         "id": 9,
-        "query": "Which API is responsible for live web search?"
+        "query": "Which API is responsible for live web search?",
+        "expected_answer": "Tavily API or similar web search API is used.",
+        "category": "standard"
     },
     {
         "id": 10,
-        "query": "Where are uploaded PDF files stored?"
+        "query": "Where are uploaded PDF files stored?",
+        "expected_answer": "PDF files are stored in Supabase Storage.",
+        "category": "standard"
     },
     {
         "id": 11,
-        "query": "How are users authenticated?"
+        "query": "How are users authenticated?",
+        "expected_answer": "Users are authenticated using Supabase Auth.",
+        "category": "standard"
     },
     {
         "id": 12,
-        "query": "Which database does the backend use?"
+        "query": "Which database does the backend use?",
+        "expected_answer": "The backend uses PostgreSQL (via Supabase) as the primary relational database.",
+        "category": "standard"
     },
     {
         "id": 13,
-        "query": "How are AI responses streamed to the frontend?"
+        "query": "How are AI responses streamed to the frontend?",
+        "expected_answer": "AI responses are streamed to the frontend using Server-Sent Events (SSE).",
+        "category": "standard"
     },
     {
         "id": 14,
-        "query": "What frontend technologies are used in IronChat?"
+        "query": "What frontend technologies are used in IronChat?",
+        "expected_answer": "The frontend is built using React, Vite, and TailwindCSS.",
+        "category": "standard"
     },
     {
         "id": 15,
-        "query": "Where is the frontend and backend deployed?"
+        "query": "Where is the frontend and backend deployed?",
+        "expected_answer": "The deployment infrastructure is currently not specified, but typically involves Vercel/Netlify for frontend and Render/Railway for backend.",
+        "category": "standard"
     },
     {
         "id": 16,
-        "query": "Explain the complete RAG pipeline."
+        "query": "Explain the complete RAG pipeline.",
+        "expected_answer": "The RAG pipeline retrieves relevant document chunks from Qdrant based on semantic similarity using Voyage embeddings, and passes them as context to the LLM to generate a grounded response.",
+        "category": "standard"
     },
     {
         "id": 17,
-        "query": "Does IronChat support image uploads for visual question answering?"
+        "query": "Does IronChat support image uploads for visual question answering?",
+        "expected_answer": "I don't know.",
+        "category": "guardrail_idk"
     },
     {
         "id": 18,
-        "query": "Which payment gateway does IronChat use?"
+        "query": "Which payment gateway does IronChat use?",
+        "expected_answer": "I don't know.",
+        "category": "guardrail_idk"
     },
     {
         "id": 19,
-        "query": "Can IronChat generate images using Stable Diffusion?"
+        "query": "Can IronChat generate images using Stable Diffusion?",
+        "expected_answer": "I don't know.",
+        "category": "guardrail_idk"
     },
     {
         "id": 20,
-        "query": "Does IronChat support voice conversations?"
+        "query": "Does IronChat support voice conversations?",
+        "expected_answer": "I don't know.",
+        "category": "guardrail_idk"
     }
 ]
