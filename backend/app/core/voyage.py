@@ -1,20 +1,15 @@
-# import voyageai
-# from app.core.config import settings
+import voyageai
+from app.core.config import settings
 
-# voyage_client = voyageai.AsyncClient(api_key=settings.VOYAGE_API_KEY)
+_client = None
 
+def _get_client():
+    global _client
+    if _client is None:
+        _client = voyageai.Client(api_key=settings.VOYAGE_API_KEY)
+    return _client
 
-
-
-# from sentence_transformers import SentenceTransformer
-
-# model = SentenceTransformer("all-MiniLM-L6-v2")   
-
-
-
-# def embed_text(text : str):
-#     question_vector = model.encode(text).tolist()
-#     return question_vector
-
-
-from j
+def embed_text(text: str) -> list[float]:
+    client = _get_client()
+    result = client.embed([text], model="voyage-3-lite", input_type="query")
+    return result.embeddings[0]
