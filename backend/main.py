@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=parse_allowed_origins(settings.ALLOWED_ORIGINS),
+    allow_origins=parse_allowed_origins(settings.FRONTEND_URL),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
