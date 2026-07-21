@@ -13,15 +13,28 @@ from app.core.config import settings
 from app.core.database import engine
 
 
-def parse_allowed_origins(origins: str) -> list[str]:
-    return [origin.strip().strip('"').strip("'").rstrip('/') for origin in origins.split(',') if origin.strip()]
+def parse_allowed_origins(origins_str: str = "") -> list[str]:
+    origins = set()
+    for source in [origins_str, settings.ALLOWED_ORIGINS, settings.FRONTEND_URL]:
+        if source:
+            for origin in source.split(','):
+                cleaned = origin.strip().strip('"').strip("'").rstrip('/')
+                if cleaned:
+                    origins.add(cleaned)
+    origins.add("http://localhost:5173")
+    origins.add("http://localhost:3000")
+    origins.add("https://ironchat-three.vercel.app")
+    return list(origins)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Warm up the DB connection pool so the first real request is fast
-    async with engine.connect() as conn:
-        await conn.execute(__import__('sqlalchemy').text('SELECT 1'))
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(__import__('sqlalchemy').text('SELECT 1'))
+    except Exception as e:
+        print(f"Lifespan DB connection warning: {e}")
     yield
 
 
@@ -40,7 +53,8 @@ logger = logging.getLogger(__name__)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=parse_allowed_origins(settings.FRONTEND_URL),
+    allow_origins=parse_allowed_origins(settings.ALLOWED_ORIGINS),
+    allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:\d+",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
