@@ -31,7 +31,7 @@ function Dashboard({
   user,
 }) {
   return (
-    <main className="flex h-screen overflow-hidden bg-white text-slate-950 dark:bg-[#212121] dark:text-white">
+    <main className="flex h-screen overflow-hidden bg-slate-50 text-slate-950 dark:bg-[#0f0f11] dark:text-white">
         <Sidebar
           activeChat={activeChat}
           chats={chats}
@@ -47,7 +47,7 @@ function Dashboard({
         />
 
       <section className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex h-16 flex-none items-center justify-between border-b border-slate-200/60 bg-white/80 px-3 backdrop-blur-md dark:border-white/5 dark:bg-[#121212]/80 sm:px-6">
+        <header className="sticky top-0 z-10 flex h-16 flex-none items-center justify-between border-b border-transparent bg-white/60 px-3 glass dark:bg-[#0f0f11]/60 sm:px-6 before:absolute before:inset-x-0 before:-bottom-px before:h-px before:bg-gradient-to-r before:from-transparent before:via-violet-500/20 before:to-transparent">
           <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4 pr-2">
             <button
               type="button"
@@ -119,7 +119,7 @@ function Dashboard({
             <button
               type="button"
               onClick={onLogout}
-              className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white shadow-sm ring-1 ring-slate-900/10 transition-all hover:bg-slate-800 hover:shadow dark:bg-white dark:text-slate-900 dark:ring-white/10 dark:hover:bg-slate-100 sm:px-4 sm:text-sm"
+              className="rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:scale-105 hover:shadow-violet-500/25 sm:px-4 sm:text-sm"
             >
               Logout
             </button>

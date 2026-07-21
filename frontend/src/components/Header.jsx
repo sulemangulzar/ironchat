@@ -8,7 +8,7 @@ function Header({ isDark, setIsDark, setPage }) {
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/85 backdrop-blur dark:border-white/10 dark:bg-[#212121]/90">
+    <header className="sticky top-0 z-20 border-b border-transparent bg-white/70 glass dark:bg-[#121212]/70 before:absolute before:inset-x-0 before:-bottom-px before:h-px before:bg-gradient-to-r before:from-transparent before:via-violet-500/20 before:to-transparent">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
         <button type="button" onClick={() => setPage('landing')} className="flex items-center gap-3">
           <Logo size="md" showText />

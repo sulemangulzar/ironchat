@@ -11,13 +11,14 @@ from app.core.qdrant import qdrant_client
 from app.core.voyage import embed_text
 from app.core.config import settings
 
+
 def load_golden_set() -> list[dict]:
     with open("golden_set.json", "r", encoding="utf-8") as file:
         return json.load(file)
 
 RAG_COLLECTION_NAME = "ironchat_docs"
 
-# Initialize Advanced RAG components
+
 groq_client = AsyncGroq(api_key=settings.GROQ_API_KEY)
 cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
 

@@ -20,10 +20,10 @@ async def evaluate_semantic_similarity(expected_answer: str, generated_answer: s
         
     from app.core.voyage import embed_text
     
-    vec_exp, vec_gen = await asyncio.gather(
-        asyncio.to_thread(embed_text, expected_answer),
-        asyncio.to_thread(embed_text, generated_answer)
-    )
+    # Avoid running PyTorch/SentenceTransformers concurrently in threads to prevent segfaults
+    vec_exp = embed_text(expected_answer)
+    vec_gen = embed_text(generated_answer)
+
     return cosine_similarity(vec_exp, vec_gen)
 
 class RAGMetricsJudge:

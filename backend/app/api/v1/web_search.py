@@ -3,14 +3,13 @@ from typing import Any
 from tavily import AsyncTavilyClient
 
 from app.core.config import settings
-
+from fastapi import APIRouter, HTTPException
 from app.tools.websearch.schemas import SearchWebParams
 
 tavily_client = AsyncTavilyClient(
     api_key=settings.TAVILY_API_KEY
 )
 
-from fastapi import APIRouter, HTTPException
 
 
 router = APIRouter(prefix="/web", tags=["Web Search"])

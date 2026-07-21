@@ -22,15 +22,20 @@ function ChatWindow({ activeChat, isActionLoading, isChatLoading, isLoading, mes
           ) : (
             <>
               {messages.length <= 1 && (
-                <div className="flex flex-1 flex-col items-center justify-center text-center">
-                  <Logo size="lg" className="mb-5" />
-                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                <div className="flex flex-1 flex-col items-center justify-center text-center animate-slide-up">
+                  <div className="relative mb-8">
+                    <div className="absolute inset-0 animate-pulse-slow rounded-full bg-violet-500/20 blur-xl dark:bg-fuchsia-500/20" />
+                    <div className="relative rounded-2xl bg-white p-4 shadow-xl ring-1 ring-slate-900/5 glass dark:bg-[#121212]/50 dark:ring-white/10">
+                      <Logo size="lg" />
+                    </div>
+                  </div>
+                  <h1 className="text-3xl font-black tracking-tight sm:text-4xl text-slate-900 dark:text-white">
                     How can I help you today?
                   </h1>
-                  <p className="mt-4 max-w-xl leading-7 text-slate-500 dark:text-slate-400">
+                  <p className="mt-4 max-w-xl text-lg leading-relaxed text-slate-500 dark:text-slate-400">
                     Ask IronChat anything. You can use it to brainstorm ideas, write code, or analyze complex topics. 
                     <br/><br/>
-                    <strong>Pro tip:</strong> Enable <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10 dark:bg-indigo-400/10 dark:text-indigo-400 dark:ring-indigo-400/30">Web Research</span> below to search the internet for real-time news, live data, and up-to-date facts.
+                    <strong className="text-violet-600 dark:text-violet-400">Pro tip:</strong> Enable <span className="inline-flex items-center gap-1 rounded-md bg-fuchsia-50 px-2 py-0.5 text-xs font-semibold text-fuchsia-700 ring-1 ring-inset ring-fuchsia-700/10 dark:bg-fuchsia-400/10 dark:text-fuchsia-400 dark:ring-fuchsia-400/30">Web Research</span> below to search the internet for real-time news, live data, and up-to-date facts.
                   </p>
                 </div>
               )}
@@ -106,7 +111,7 @@ function MessageBubble({ message }) {
       <div
         className={
           isUser
-            ? 'max-w-[85%] rounded-[24px] rounded-tr-[8px] bg-slate-900 px-6 py-3.5 text-[15px] leading-relaxed text-white shadow-sm dark:bg-slate-100 dark:text-slate-900'
+            ? 'max-w-[85%] rounded-[24px] rounded-tr-[8px] bg-gradient-to-br from-violet-600 to-fuchsia-600 px-6 py-3.5 text-[15px] leading-relaxed text-white shadow-md shadow-violet-500/10 dark:from-violet-500 dark:to-fuchsia-600'
             : 'min-w-0 flex-1 px-1 pt-1 text-[15px] leading-8 text-slate-800 dark:text-slate-200'
         }
       >
@@ -136,7 +141,7 @@ function Avatar({ role }) {
     <div
       className={`grid h-9 w-9 flex-none place-items-center rounded-full text-xs font-black shadow-sm ring-1 ring-inset ${
         role === 'user'
-          ? 'bg-gradient-to-br from-cyan-400 to-emerald-400 text-slate-950 ring-black/5 dark:ring-white/10'
+          ? 'bg-gradient-to-br from-violet-200 to-fuchsia-200 text-violet-900 ring-violet-500/20 dark:from-violet-500/20 dark:to-fuchsia-500/20 dark:text-violet-200 dark:ring-violet-400/20'
           : 'bg-transparent ring-transparent'
       }`}
     >

@@ -1,0 +1,242 @@
+[
+    {
+        "id": 1,
+        "query": "What is IronChat?",
+        "expected_answer": "IronChat is a chat application that supports PDF uploads, web search, and RAG capabilities.",
+        "category": "standard",
+        "retrieved_context": [
+            " IronChat - Complete Project Documentation\n\n## 1. Project Overview\nIronChat is a modern, responsive, and elegant AI chatbot application designed to provide quick questions, helpful answers, and smooth conversational flows. It leverages the raw speed of Llama-3 through Groq's APIs to provide real-time streaming answers. IronChat acts as an advanced intelligent assistant that can answer general knowledge questions, perform live web searches for up-to-date information, and read uploaded documents (",
+            "n generate an accurate answer based on the document.\n\n## 5. How the Web Search Pipeline Works\nIronChat does not just rely on its pre-trained knowledge; it can search the live internet.\n1. **Decision Phase:** When a user sends a message, a hidden system prompt asks the LLM: \"Does this require a live web search? Answer yes or no.\"\n2. **Search Phase:** If the LLM says yes, the backend uses the Tavily API to search the web for the query and retrieves the top results (titles, URLs, and text snippets)",
+            "er document embeddings.\n- **Document Parsing:** PyMuPDF (`fitz`), used to extract raw text accurately from uploaded PDF files.\n- **File Storage:** Supabase Storage, used as a secure bucket to store the raw PDF files uploaded by users.\n\n## 4. How the RAG (Document Chat) Pipeline Works\nRetrieval-Augmented Generation (RAG) is the feature that allows IronChat to read and answer questions about PDFs.\n1. **Upload & Storage:** The user uploads a PDF in the React frontend. The FastAPI backend receives i"
+        ],
+        "generated_answer": "## Answer\nIronChat is a modern, responsive, and elegant AI chatbot application designed to provide quick questions, helpful answers, and smooth conversational flows."
+    },
+    {
+        "id": 2,
+        "query": "Which AI model does IronChat use?",
+        "expected_answer": "IronChat uses the llama-3.3-70b-versatile model.",
+        "category": "standard",
+        "retrieved_context": [
+            " IronChat - Complete Project Documentation\n\n## 1. Project Overview\nIronChat is a modern, responsive, and elegant AI chatbot application designed to provide quick questions, helpful answers, and smooth conversational flows. It leverages the raw speed of Llama-3 through Groq's APIs to provide real-time streaming answers. IronChat acts as an advanced intelligent assistant that can answer general knowledge questions, perform live web searches for up-to-date information, and read uploaded documents (",
+            "n generate an accurate answer based on the document.\n\n## 5. How the Web Search Pipeline Works\nIronChat does not just rely on its pre-trained knowledge; it can search the live internet.\n1. **Decision Phase:** When a user sends a message, a hidden system prompt asks the LLM: \"Does this require a live web search? Answer yes or no.\"\n2. **Search Phase:** If the LLM says yes, the backend uses the Tavily API to search the web for the query and retrieves the top results (titles, URLs, and text snippets)",
+            "to-date information, and read uploaded documents (PDFs) to answer questions based on the user's private data.\n\n## 2. Core Features\n- **Blazing Fast AI Responses:** Powered by Llama-3 70b via Groq API for near-instant inference and low latency.\n- **Premium UI/UX:** Built with Tailwind CSS v4, featuring a glassmorphic dashboard, responsive layout, dark/light mode toggles, and smooth micro-animations.\n- **Secure Authentication:** Built-in user sign up, login, and session management using JWT access"
+        ],
+        "generated_answer": "### Answer\nIronChat uses the **Llama-3 70b** AI model via Groq API."
+    },
+    {
+        "id": 3,
+        "query": "How does the PDF chat feature work?",
+        "expected_answer": "You can upload a PDF, which is processed, chunked, and stored in a vector database to provide context for your questions.",
+        "category": "standard",
+        "retrieved_context": [
+            "er document embeddings.\n- **Document Parsing:** PyMuPDF (`fitz`), used to extract raw text accurately from uploaded PDF files.\n- **File Storage:** Supabase Storage, used as a secure bucket to store the raw PDF files uploaded by users.\n\n## 4. How the RAG (Document Chat) Pipeline Works\nRetrieval-Augmented Generation (RAG) is the feature that allows IronChat to read and answer questions about PDFs.\n1. **Upload & Storage:** The user uploads a PDF in the React frontend. The FastAPI backend receives i",
+            "e reading it.\n- **Web Search Integration:** Can intelligently decide when a user's prompt requires real-time information and perform live web searches using Tavily.\n- **Retrieval-Augmented Generation (RAG):** Allows users to upload PDF documents, which the chatbot reads, processes, and uses as context to answer specific questions about the document's content.\n\n## 3. Technology Stack\n\n### Frontend (Client-Side)\n- **Framework:** React 19 and Vite 8 for fast builds and hot module replacement.\n- **S",
+            " IronChat - Complete Project Documentation\n\n## 1. Project Overview\nIronChat is a modern, responsive, and elegant AI chatbot application designed to provide quick questions, helpful answers, and smooth conversational flows. It leverages the raw speed of Llama-3 through Groq's APIs to provide real-time streaming answers. IronChat acts as an advanced intelligent assistant that can answer general knowledge questions, perform live web searches for up-to-date information, and read uploaded documents ("
+        ],
+        "generated_answer": "### PDF Chat Feature\nThe PDF chat feature, also known as Retrieval-Augmented Generation (RAG), allows IronChat to read and answer questions about uploaded PDFs. Here's a step-by-step overview of how it works:\n1. **Upload & Storage**: The user uploads a PDF, which is stored securely using Supabase Storage.\n2. **Document Parsing**: PyMuPDF (`fitz`) is used to extract raw text from the uploaded PDF.\n3. **RAG Pipeline**: The extracted text is processed, and the chatbot uses it as context to answer specific questions about the document's content.\n\nThis feature enables users to upload PDF documents and receive answers to questions about the content within those documents."
+    },
+    {
+        "id": 4,
+        "query": "What happens after I upload a PDF?",
+        "expected_answer": "The PDF is parsed to extract text, divided into chunks, embedded into vectors, and saved into a Qdrant collection.",
+        "category": "standard",
+        "retrieved_context": [
+            "er document embeddings.\n- **Document Parsing:** PyMuPDF (`fitz`), used to extract raw text accurately from uploaded PDF files.\n- **File Storage:** Supabase Storage, used as a secure bucket to store the raw PDF files uploaded by users.\n\n## 4. How the RAG (Document Chat) Pipeline Works\nRetrieval-Augmented Generation (RAG) is the feature that allows IronChat to read and answer questions about PDFs.\n1. **Upload & Storage:** The user uploads a PDF in the React frontend. The FastAPI backend receives i",
+            "the React frontend. The FastAPI backend receives it and stores the raw file in a Supabase Storage bucket.\n2. **Text Extraction:** The backend uses PyMuPDF to extract text from the PDF, page by page.\n3. **Chunking:** The extracted text is split into smaller, overlapping \"chunks\" (usually around 700 characters) to ensure the AI gets precise context without being overwhelmed.\n4. **Embedding:** The text chunks are sent to the Voyage AI API, which converts the human text into vector embeddings (lists",
+            "e reading it.\n- **Web Search Integration:** Can intelligently decide when a user's prompt requires real-time information and perform live web searches using Tavily.\n- **Retrieval-Augmented Generation (RAG):** Allows users to upload PDF documents, which the chatbot reads, processes, and uses as context to answer specific questions about the document's content.\n\n## 3. Technology Stack\n\n### Frontend (Client-Side)\n- **Framework:** React 19 and Vite 8 for fast builds and hot module replacement.\n- **S"
+        ],
+        "generated_answer": "## Step-by-Step Process After Uploading a PDF\nAfter uploading a PDF, the following steps occur:\n1. **Storage**: The raw PDF file is stored in a Supabase Storage bucket.\n2. **Text Extraction**: PyMuPDF is used to extract text from the PDF, page by page.\n3. **Chunking**: The extracted text is split into smaller, overlapping \"chunks\" (usually around 700 characters).\n4. **Embedding**: The text chunks are sent to the Voyage AI API to convert the human text into vector embeddings."
+    },
+    {
+        "id": 5,
+        "query": "Which vector database is used in IronChat?",
+        "expected_answer": "IronChat uses Qdrant as its vector database.",
+        "category": "standard",
+        "retrieved_context": [
+            " IronChat - Complete Project Documentation\n\n## 1. Project Overview\nIronChat is a modern, responsive, and elegant AI chatbot application designed to provide quick questions, helpful answers, and smooth conversational flows. It leverages the raw speed of Llama-3 through Groq's APIs to provide real-time streaming answers. IronChat acts as an advanced intelligent assistant that can answer general knowledge questions, perform live web searches for up-to-date information, and read uploaded documents (",
+            "verts the human text into vector embeddings (lists of numbers representing meaning).\n5. **Vector Storage:** These vectors, along with metadata (like page numbers and chat IDs), are saved in the Qdrant Vector Database.\n6. **Retrieval (Answering):** When the user asks a question, IronChat converts the question into a vector using Voyage AI, searches Qdrant for the closest matching chunks, and feeds those chunks into the Groq Llama-3 prompt so it can generate an accurate answer based on the documen",
+            "n generate an accurate answer based on the document.\n\n## 5. How the Web Search Pipeline Works\nIronChat does not just rely on its pre-trained knowledge; it can search the live internet.\n1. **Decision Phase:** When a user sends a message, a hidden system prompt asks the LLM: \"Does this require a live web search? Answer yes or no.\"\n2. **Search Phase:** If the LLM says yes, the backend uses the Tavily API to search the web for the query and retrieves the top results (titles, URLs, and text snippets)"
+        ],
+        "generated_answer": "### Answer\nThe Qdrant Vector Database is used in IronChat."
+    },
+    {
+        "id": 6,
+        "query": "How are PDF documents converted into embeddings?",
+        "expected_answer": "PDF text chunks are converted into embeddings using Voyage AI.",
+        "category": "standard",
+        "retrieved_context": [
+            "er document embeddings.\n- **Document Parsing:** PyMuPDF (`fitz`), used to extract raw text accurately from uploaded PDF files.\n- **File Storage:** Supabase Storage, used as a secure bucket to store the raw PDF files uploaded by users.\n\n## 4. How the RAG (Document Chat) Pipeline Works\nRetrieval-Augmented Generation (RAG) is the feature that allows IronChat to read and answer questions about PDFs.\n1. **Upload & Storage:** The user uploads a PDF in the React frontend. The FastAPI backend receives i",
+            "the React frontend. The FastAPI backend receives it and stores the raw file in a Supabase Storage bucket.\n2. **Text Extraction:** The backend uses PyMuPDF to extract text from the PDF, page by page.\n3. **Chunking:** The extracted text is split into smaller, overlapping \"chunks\" (usually around 700 characters) to ensure the AI gets precise context without being overwhelmed.\n4. **Embedding:** The text chunks are sent to the Voyage AI API, which converts the human text into vector embeddings (lists",
+            "verts the human text into vector embeddings (lists of numbers representing meaning).\n5. **Vector Storage:** These vectors, along with metadata (like page numbers and chat IDs), are saved in the Qdrant Vector Database.\n6. **Retrieval (Answering):** When the user asks a question, IronChat converts the question into a vector using Voyage AI, searches Qdrant for the closest matching chunks, and feeds those chunks into the Groq Llama-3 prompt so it can generate an accurate answer based on the documen"
+        ],
+        "generated_answer": "### PDF to Embeddings Process\nThe process involves the following steps:\n1. **Text Extraction**: PyMuPDF is used to extract text from the PDF, page by page.\n2. **Chunking**: The extracted text is split into smaller, overlapping \"chunks\" (usually around 700 characters).\n3. **Embedding**: The text chunks are sent to the Voyage AI API, which converts the human text into vector embeddings (lists of numbers representing meaning)."
+    },
+    {
+        "id": 7,
+        "query": "Which library extracts text from uploaded PDFs?",
+        "expected_answer": "IronChat uses pdfplumber to extract text.",
+        "category": "standard",
+        "retrieved_context": [
+            "the React frontend. The FastAPI backend receives it and stores the raw file in a Supabase Storage bucket.\n2. **Text Extraction:** The backend uses PyMuPDF to extract text from the PDF, page by page.\n3. **Chunking:** The extracted text is split into smaller, overlapping \"chunks\" (usually around 700 characters) to ensure the AI gets precise context without being overwhelmed.\n4. **Embedding:** The text chunks are sent to the Voyage AI API, which converts the human text into vector embeddings (lists",
+            "er document embeddings.\n- **Document Parsing:** PyMuPDF (`fitz`), used to extract raw text accurately from uploaded PDF files.\n- **File Storage:** Supabase Storage, used as a secure bucket to store the raw PDF files uploaded by users.\n\n## 4. How the RAG (Document Chat) Pipeline Works\nRetrieval-Augmented Generation (RAG) is the feature that allows IronChat to read and answer questions about PDFs.\n1. **Upload & Storage:** The user uploads a PDF in the React frontend. The FastAPI backend receives i",
+            "d for secure password hashing.\n\n### AI, Machine Learning, and External APIs\n- **Large Language Model (LLM):** Groq API running Llama-3 70b.\n- **Web Search API:** Tavily (`tavily-python`), an AI-focused search engine API.\n- **Vector Embeddings:** Voyage AI (`voyageai`), specifically the `voyage-3-lite` model, used to convert text into mathematical vectors.\n- **Vector Database:** Qdrant (`qdrant-client`), used for fast semantic similarity search over document embeddings.\n- **Document Parsing:** Py"
+        ],
+        "generated_answer": "### Answer\nThe library used to extract text from uploaded PDFs is **PyMuPDF** (`fitz`)."
+    },
+    {
+        "id": 8,
+        "query": "How does IronChat decide when to perform a web search?",
+        "expected_answer": "IronChat uses a tool calling or routing step to perform a web search if the user's question requires up-to-date or real-world information not present in the provided PDFs.",
+        "category": "standard",
+        "retrieved_context": [
+            "n generate an accurate answer based on the document.\n\n## 5. How the Web Search Pipeline Works\nIronChat does not just rely on its pre-trained knowledge; it can search the live internet.\n1. **Decision Phase:** When a user sends a message, a hidden system prompt asks the LLM: \"Does this require a live web search? Answer yes or no.\"\n2. **Search Phase:** If the LLM says yes, the backend uses the Tavily API to search the web for the query and retrieves the top results (titles, URLs, and text snippets)",
+            " IronChat - Complete Project Documentation\n\n## 1. Project Overview\nIronChat is a modern, responsive, and elegant AI chatbot application designed to provide quick questions, helpful answers, and smooth conversational flows. It leverages the raw speed of Llama-3 through Groq's APIs to provide real-time streaming answers. IronChat acts as an advanced intelligent assistant that can answer general knowledge questions, perform live web searches for up-to-date information, and read uploaded documents (",
+            "e reading it.\n- **Web Search Integration:** Can intelligently decide when a user's prompt requires real-time information and perform live web searches using Tavily.\n- **Retrieval-Augmented Generation (RAG):** Allows users to upload PDF documents, which the chatbot reads, processes, and uses as context to answer specific questions about the document's content.\n\n## 3. Technology Stack\n\n### Frontend (Client-Side)\n- **Framework:** React 19 and Vite 8 for fast builds and hot module replacement.\n- **S"
+        ],
+        "generated_answer": "## Decision to Perform Web Search\nIronChat decides when to perform a web search through a **Decision Phase**. In this phase, a hidden system prompt asks the LLM: \"Does this require a live web search? Answer yes or no.\" If the LLM responds with \"yes\", the backend proceeds to search the web using the Tavily API."
+    },
+    {
+        "id": 9,
+        "query": "Which API is responsible for live web search?",
+        "expected_answer": "Tavily API or similar web search API is used.",
+        "category": "standard",
+        "retrieved_context": [
+            "n generate an accurate answer based on the document.\n\n## 5. How the Web Search Pipeline Works\nIronChat does not just rely on its pre-trained knowledge; it can search the live internet.\n1. **Decision Phase:** When a user sends a message, a hidden system prompt asks the LLM: \"Does this require a live web search? Answer yes or no.\"\n2. **Search Phase:** If the LLM says yes, the backend uses the Tavily API to search the web for the query and retrieves the top results (titles, URLs, and text snippets)",
+            "e reading it.\n- **Web Search Integration:** Can intelligently decide when a user's prompt requires real-time information and perform live web searches using Tavily.\n- **Retrieval-Augmented Generation (RAG):** Allows users to upload PDF documents, which the chatbot reads, processes, and uses as context to answer specific questions about the document's content.\n\n## 3. Technology Stack\n\n### Frontend (Client-Side)\n- **Framework:** React 19 and Vite 8 for fast builds and hot module replacement.\n- **S",
+            " the top results (titles, URLs, and text snippets).\n3. **Augmentation:** The search results are injected into the context of the main conversation.\n4. **Generation:** The Groq Llama-3 model reads the search results, writes a comprehensive answer, and includes inline citations (e.g., [1], [2]) linking back to the source URLs.\n\n## 6. Security and Deployment\n- **CORS & Origins:** The backend is strictly configured to only accept requests from the deployed frontend URL to prevent cross-site request "
+        ],
+        "generated_answer": "### Answer\nThe Tavily API is responsible for live web searches."
+    },
+    {
+        "id": 10,
+        "query": "Where are uploaded PDF files stored?",
+        "expected_answer": "PDF files are stored in Supabase Storage.",
+        "category": "standard",
+        "retrieved_context": [
+            "the React frontend. The FastAPI backend receives it and stores the raw file in a Supabase Storage bucket.\n2. **Text Extraction:** The backend uses PyMuPDF to extract text from the PDF, page by page.\n3. **Chunking:** The extracted text is split into smaller, overlapping \"chunks\" (usually around 700 characters) to ensure the AI gets precise context without being overwhelmed.\n4. **Embedding:** The text chunks are sent to the Voyage AI API, which converts the human text into vector embeddings (lists",
+            "er document embeddings.\n- **Document Parsing:** PyMuPDF (`fitz`), used to extract raw text accurately from uploaded PDF files.\n- **File Storage:** Supabase Storage, used as a secure bucket to store the raw PDF files uploaded by users.\n\n## 4. How the RAG (Document Chat) Pipeline Works\nRetrieval-Augmented Generation (RAG) is the feature that allows IronChat to read and answer questions about PDFs.\n1. **Upload & Storage:** The user uploads a PDF in the React frontend. The FastAPI backend receives i",
+            "ployed frontend URL to prevent cross-site request forgery.\n- **Deployment:** The frontend is deployed and hosted on Vercel. The backend is deployed and hosted on Render. \n- **Database Hosting:** The PostgreSQL relational database and the file storage buckets are hosted on Supabase.\n"
+        ],
+        "generated_answer": "Uploaded PDF files are stored in a **Supabase Storage** bucket."
+    },
+    {
+        "id": 11,
+        "query": "How are users authenticated?",
+        "expected_answer": "Users are authenticated using Supabase Auth.",
+        "category": "standard",
+        "retrieved_context": [
+            "up, login, and session management using JWT access and refresh tokens, with passwords hashed via Argon2.\n- **Optimized Backend:** A robust FastAPI backend integrated with PostgreSQL (via Supabase), using advanced async SQLModel techniques to minimize latency.\n- **Streaming Messages:** Messages are streamed to the frontend via Server-Sent Events (SSE) for a typewriter-like feel, so users don't have to wait for the entire response to generate before reading it.\n- **Web Search Integration:** Can in",
+            "to-date information, and read uploaded documents (PDFs) to answer questions based on the user's private data.\n\n## 2. Core Features\n- **Blazing Fast AI Responses:** Powered by Llama-3 70b via Groq API for near-instant inference and low latency.\n- **Premium UI/UX:** Built with Tailwind CSS v4, featuring a glassmorphic dashboard, responsive layout, dark/light mode toggles, and smooth micro-animations.\n- **Secure Authentication:** Built-in user sign up, login, and session management using JWT access",
+            "er document embeddings.\n- **Document Parsing:** PyMuPDF (`fitz`), used to extract raw text accurately from uploaded PDF files.\n- **File Storage:** Supabase Storage, used as a secure bucket to store the raw PDF files uploaded by users.\n\n## 4. How the RAG (Document Chat) Pipeline Works\nRetrieval-Augmented Generation (RAG) is the feature that allows IronChat to read and answer questions about PDFs.\n1. **Upload & Storage:** The user uploads a PDF in the React frontend. The FastAPI backend receives i"
+        ],
+        "generated_answer": "### Authentication\nUsers are authenticated using **JWT access and refresh tokens**, with passwords hashed via **Argon2**. This is part of the built-in user sign up, login, and session management system."
+    },
+    {
+        "id": 12,
+        "query": "Which database does the backend use?",
+        "expected_answer": "The backend uses PostgreSQL (via Supabase) as the primary relational database.",
+        "category": "standard",
+        "retrieved_context": [
+            "nguage & Framework:** Python 3.13 and FastAPI, chosen for high performance and native async support.\n- **Database (Relational):** PostgreSQL, hosted on Supabase.\n- **ORM (Object-Relational Mapping):** SQLModel and SQLAlchemy 2.0 with `asyncpg` for high-speed asynchronous database operations.\n- **Migrations:** Alembic is used to manage database schema changes.\n- **Authentication:** PyJWT is used for JSON Web Tokens, and `pwdlib` with Argon2 is used for secure password hashing.\n\n### AI, Machine Le",
+            "ployed frontend URL to prevent cross-site request forgery.\n- **Deployment:** The frontend is deployed and hosted on Vercel. The backend is deployed and hosted on Render. \n- **Database Hosting:** The PostgreSQL relational database and the file storage buckets are hosted on Supabase.\n",
+            "up, login, and session management using JWT access and refresh tokens, with passwords hashed via Argon2.\n- **Optimized Backend:** A robust FastAPI backend integrated with PostgreSQL (via Supabase), using advanced async SQLModel techniques to minimize latency.\n- **Streaming Messages:** Messages are streamed to the frontend via Server-Sent Events (SSE) for a typewriter-like feel, so users don't have to wait for the entire response to generate before reading it.\n- **Web Search Integration:** Can in"
+        ],
+        "generated_answer": "### Database Used by Backend\nThe backend uses **PostgreSQL**, hosted on Supabase."
+    },
+    {
+        "id": 13,
+        "query": "How are AI responses streamed to the frontend?",
+        "expected_answer": "AI responses are streamed to the frontend using Server-Sent Events (SSE).",
+        "category": "standard",
+        "retrieved_context": [
+            "to-date information, and read uploaded documents (PDFs) to answer questions based on the user's private data.\n\n## 2. Core Features\n- **Blazing Fast AI Responses:** Powered by Llama-3 70b via Groq API for near-instant inference and low latency.\n- **Premium UI/UX:** Built with Tailwind CSS v4, featuring a glassmorphic dashboard, responsive layout, dark/light mode toggles, and smooth micro-animations.\n- **Secure Authentication:** Built-in user sign up, login, and session management using JWT access",
+            "e reading it.\n- **Web Search Integration:** Can intelligently decide when a user's prompt requires real-time information and perform live web searches using Tavily.\n- **Retrieval-Augmented Generation (RAG):** Allows users to upload PDF documents, which the chatbot reads, processes, and uses as context to answer specific questions about the document's content.\n\n## 3. Technology Stack\n\n### Frontend (Client-Side)\n- **Framework:** React 19 and Vite 8 for fast builds and hot module replacement.\n- **S",
+            "the React frontend. The FastAPI backend receives it and stores the raw file in a Supabase Storage bucket.\n2. **Text Extraction:** The backend uses PyMuPDF to extract text from the PDF, page by page.\n3. **Chunking:** The extracted text is split into smaller, overlapping \"chunks\" (usually around 700 characters) to ensure the AI gets precise context without being overwhelmed.\n4. **Embedding:** The text chunks are sent to the Voyage AI API, which converts the human text into vector embeddings (lists"
+        ],
+        "generated_answer": "I don't have that information in the documentation."
+    },
+    {
+        "id": 14,
+        "query": "What frontend technologies are used in IronChat?",
+        "expected_answer": "The frontend is built using React, Vite, and TailwindCSS.",
+        "category": "standard",
+        "retrieved_context": [
+            " IronChat - Complete Project Documentation\n\n## 1. Project Overview\nIronChat is a modern, responsive, and elegant AI chatbot application designed to provide quick questions, helpful answers, and smooth conversational flows. It leverages the raw speed of Llama-3 through Groq's APIs to provide real-time streaming answers. IronChat acts as an advanced intelligent assistant that can answer general knowledge questions, perform live web searches for up-to-date information, and read uploaded documents (",
+            "er document embeddings.\n- **Document Parsing:** PyMuPDF (`fitz`), used to extract raw text accurately from uploaded PDF files.\n- **File Storage:** Supabase Storage, used as a secure bucket to store the raw PDF files uploaded by users.\n\n## 4. How the RAG (Document Chat) Pipeline Works\nRetrieval-Augmented Generation (RAG) is the feature that allows IronChat to read and answer questions about PDFs.\n1. **Upload & Storage:** The user uploads a PDF in the React frontend. The FastAPI backend receives i",
+            "n generate an accurate answer based on the document.\n\n## 5. How the Web Search Pipeline Works\nIronChat does not just rely on its pre-trained knowledge; it can search the live internet.\n1. **Decision Phase:** When a user sends a message, a hidden system prompt asks the LLM: \"Does this require a live web search? Answer yes or no.\"\n2. **Search Phase:** If the LLM says yes, the backend uses the Tavily API to search the web for the query and retrieves the top results (titles, URLs, and text snippets)"
+        ],
+        "generated_answer": "## Answer\nThe frontend technology used in IronChat is React."
+    },
+    {
+        "id": 15,
+        "query": "Where is the frontend and backend deployed?",
+        "expected_answer": "The deployment infrastructure is currently not specified, but typically involves Vercel/Netlify for frontend and Render/Railway for backend.",
+        "category": "standard",
+        "retrieved_context": [
+            "ployed frontend URL to prevent cross-site request forgery.\n- **Deployment:** The frontend is deployed and hosted on Vercel. The backend is deployed and hosted on Render. \n- **Database Hosting:** The PostgreSQL relational database and the file storage buckets are hosted on Supabase.\n",
+            " the top results (titles, URLs, and text snippets).\n3. **Augmentation:** The search results are injected into the context of the main conversation.\n4. **Generation:** The Groq Llama-3 model reads the search results, writes a comprehensive answer, and includes inline citations (e.g., [1], [2]) linking back to the source URLs.\n\n## 6. Security and Deployment\n- **CORS & Origins:** The backend is strictly configured to only accept requests from the deployed frontend URL to prevent cross-site request ",
+            "up, login, and session management using JWT access and refresh tokens, with passwords hashed via Argon2.\n- **Optimized Backend:** A robust FastAPI backend integrated with PostgreSQL (via Supabase), using advanced async SQLModel techniques to minimize latency.\n- **Streaming Messages:** Messages are streamed to the frontend via Server-Sent Events (SSE) for a typewriter-like feel, so users don't have to wait for the entire response to generate before reading it.\n- **Web Search Integration:** Can in"
+        ],
+        "generated_answer": "### Deployment Information\n* The **frontend** is deployed and hosted on **Vercel**.\n* The **backend** is deployed and hosted on **Render**."
+    },
+    {
+        "id": 16,
+        "query": "Explain the complete RAG pipeline.",
+        "expected_answer": "The RAG pipeline retrieves relevant document chunks from Qdrant based on semantic similarity using Voyage embeddings, and passes them as context to the LLM to generate a grounded response.",
+        "category": "standard",
+        "retrieved_context": [
+            "er document embeddings.\n- **Document Parsing:** PyMuPDF (`fitz`), used to extract raw text accurately from uploaded PDF files.\n- **File Storage:** Supabase Storage, used as a secure bucket to store the raw PDF files uploaded by users.\n\n## 4. How the RAG (Document Chat) Pipeline Works\nRetrieval-Augmented Generation (RAG) is the feature that allows IronChat to read and answer questions about PDFs.\n1. **Upload & Storage:** The user uploads a PDF in the React frontend. The FastAPI backend receives i",
+            "n generate an accurate answer based on the document.\n\n## 5. How the Web Search Pipeline Works\nIronChat does not just rely on its pre-trained knowledge; it can search the live internet.\n1. **Decision Phase:** When a user sends a message, a hidden system prompt asks the LLM: \"Does this require a live web search? Answer yes or no.\"\n2. **Search Phase:** If the LLM says yes, the backend uses the Tavily API to search the web for the query and retrieves the top results (titles, URLs, and text snippets)",
+            " the top results (titles, URLs, and text snippets).\n3. **Augmentation:** The search results are injected into the context of the main conversation.\n4. **Generation:** The Groq Llama-3 model reads the search results, writes a comprehensive answer, and includes inline citations (e.g., [1], [2]) linking back to the source URLs.\n\n## 6. Security and Deployment\n- **CORS & Origins:** The backend is strictly configured to only accept requests from the deployed frontend URL to prevent cross-site request "
+        ],
+        "generated_answer": "## RAG Pipeline Overview\nThe Retrieval-Augmented Generation (RAG) pipeline is a feature that allows IronChat to read and answer questions about PDFs. \n\n### Steps Involved\n1. **Upload & Storage:** The user uploads a PDF in the React frontend, which is then received by the FastAPI backend and stored using Supabase Storage.\n2. **Document Parsing:** PyMuPDF (`fitz`) is used to extract raw text accurately from the uploaded PDF files.\n3. **Generation:** Although the documentation does not explicitly state the generation step for the RAG pipeline, it is implied that the extracted text is used to generate an accurate answer based on the document.\n\nNote: The documentation does not provide a detailed, step-by-step explanation of the complete RAG pipeline. However, based on the available information, the above steps are involved in the process."
+    },
+    {
+        "id": 17,
+        "query": "Does IronChat support image uploads for visual question answering?",
+        "expected_answer": "I don't know.",
+        "category": "guardrail_idk",
+        "retrieved_context": [
+            " IronChat - Complete Project Documentation\n\n## 1. Project Overview\nIronChat is a modern, responsive, and elegant AI chatbot application designed to provide quick questions, helpful answers, and smooth conversational flows. It leverages the raw speed of Llama-3 through Groq's APIs to provide real-time streaming answers. IronChat acts as an advanced intelligent assistant that can answer general knowledge questions, perform live web searches for up-to-date information, and read uploaded documents (",
+            "n generate an accurate answer based on the document.\n\n## 5. How the Web Search Pipeline Works\nIronChat does not just rely on its pre-trained knowledge; it can search the live internet.\n1. **Decision Phase:** When a user sends a message, a hidden system prompt asks the LLM: \"Does this require a live web search? Answer yes or no.\"\n2. **Search Phase:** If the LLM says yes, the backend uses the Tavily API to search the web for the query and retrieves the top results (titles, URLs, and text snippets)",
+            "er document embeddings.\n- **Document Parsing:** PyMuPDF (`fitz`), used to extract raw text accurately from uploaded PDF files.\n- **File Storage:** Supabase Storage, used as a secure bucket to store the raw PDF files uploaded by users.\n\n## 4. How the RAG (Document Chat) Pipeline Works\nRetrieval-Augmented Generation (RAG) is the feature that allows IronChat to read and answer questions about PDFs.\n1. **Upload & Storage:** The user uploads a PDF in the React frontend. The FastAPI backend receives i"
+        ],
+        "generated_answer": "I don't have that information in the documentation."
+    },
+    {
+        "id": 18,
+        "query": "Which payment gateway does IronChat use?",
+        "expected_answer": "I don't know.",
+        "category": "guardrail_idk",
+        "retrieved_context": [
+            " IronChat - Complete Project Documentation\n\n## 1. Project Overview\nIronChat is a modern, responsive, and elegant AI chatbot application designed to provide quick questions, helpful answers, and smooth conversational flows. It leverages the raw speed of Llama-3 through Groq's APIs to provide real-time streaming answers. IronChat acts as an advanced intelligent assistant that can answer general knowledge questions, perform live web searches for up-to-date information, and read uploaded documents (",
+            "n generate an accurate answer based on the document.\n\n## 5. How the Web Search Pipeline Works\nIronChat does not just rely on its pre-trained knowledge; it can search the live internet.\n1. **Decision Phase:** When a user sends a message, a hidden system prompt asks the LLM: \"Does this require a live web search? Answer yes or no.\"\n2. **Search Phase:** If the LLM says yes, the backend uses the Tavily API to search the web for the query and retrieves the top results (titles, URLs, and text snippets)",
+            "er document embeddings.\n- **Document Parsing:** PyMuPDF (`fitz`), used to extract raw text accurately from uploaded PDF files.\n- **File Storage:** Supabase Storage, used as a secure bucket to store the raw PDF files uploaded by users.\n\n## 4. How the RAG (Document Chat) Pipeline Works\nRetrieval-Augmented Generation (RAG) is the feature that allows IronChat to read and answer questions about PDFs.\n1. **Upload & Storage:** The user uploads a PDF in the React frontend. The FastAPI backend receives i"
+        ],
+        "generated_answer": "I don't have that information in the documentation."
+    },
+    {
+        "id": 19,
+        "query": "Can IronChat generate images using Stable Diffusion?",
+        "expected_answer": "I don't know.",
+        "category": "guardrail_idk",
+        "retrieved_context": [
+            " IronChat - Complete Project Documentation\n\n## 1. Project Overview\nIronChat is a modern, responsive, and elegant AI chatbot application designed to provide quick questions, helpful answers, and smooth conversational flows. It leverages the raw speed of Llama-3 through Groq's APIs to provide real-time streaming answers. IronChat acts as an advanced intelligent assistant that can answer general knowledge questions, perform live web searches for up-to-date information, and read uploaded documents (",
+            "n generate an accurate answer based on the document.\n\n## 5. How the Web Search Pipeline Works\nIronChat does not just rely on its pre-trained knowledge; it can search the live internet.\n1. **Decision Phase:** When a user sends a message, a hidden system prompt asks the LLM: \"Does this require a live web search? Answer yes or no.\"\n2. **Search Phase:** If the LLM says yes, the backend uses the Tavily API to search the web for the query and retrieves the top results (titles, URLs, and text snippets)",
+            "er document embeddings.\n- **Document Parsing:** PyMuPDF (`fitz`), used to extract raw text accurately from uploaded PDF files.\n- **File Storage:** Supabase Storage, used as a secure bucket to store the raw PDF files uploaded by users.\n\n## 4. How the RAG (Document Chat) Pipeline Works\nRetrieval-Augmented Generation (RAG) is the feature that allows IronChat to read and answer questions about PDFs.\n1. **Upload & Storage:** The user uploads a PDF in the React frontend. The FastAPI backend receives i"
+        ],
+        "generated_answer": "I don't have that information in the documentation."
+    },
+    {
+        "id": 20,
+        "query": "Does IronChat support voice conversations?",
+        "expected_answer": "I don't know.",
+        "category": "guardrail_idk",
+        "retrieved_context": [
+            " IronChat - Complete Project Documentation\n\n## 1. Project Overview\nIronChat is a modern, responsive, and elegant AI chatbot application designed to provide quick questions, helpful answers, and smooth conversational flows. It leverages the raw speed of Llama-3 through Groq's APIs to provide real-time streaming answers. IronChat acts as an advanced intelligent assistant that can answer general knowledge questions, perform live web searches for up-to-date information, and read uploaded documents (",
+            "n generate an accurate answer based on the document.\n\n## 5. How the Web Search Pipeline Works\nIronChat does not just rely on its pre-trained knowledge; it can search the live internet.\n1. **Decision Phase:** When a user sends a message, a hidden system prompt asks the LLM: \"Does this require a live web search? Answer yes or no.\"\n2. **Search Phase:** If the LLM says yes, the backend uses the Tavily API to search the web for the query and retrieves the top results (titles, URLs, and text snippets)",
+            "er document embeddings.\n- **Document Parsing:** PyMuPDF (`fitz`), used to extract raw text accurately from uploaded PDF files.\n- **File Storage:** Supabase Storage, used as a secure bucket to store the raw PDF files uploaded by users.\n\n## 4. How the RAG (Document Chat) Pipeline Works\nRetrieval-Augmented Generation (RAG) is the feature that allows IronChat to read and answer questions about PDFs.\n1. **Upload & Storage:** The user uploads a PDF in the React frontend. The FastAPI backend receives i"
+        ],
+        "generated_answer": "I don't have that information in the documentation."
+    }
+]

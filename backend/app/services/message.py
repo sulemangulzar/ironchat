@@ -1,3 +1,4 @@
+from groq._client import AsyncGroq
 import asyncio
 import json
 import logging
@@ -5,7 +6,7 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import BackgroundTasks
-from groq import AsyncGroq
+
 
 from app.core.config import settings
 from app.models.message import Role
@@ -107,7 +108,6 @@ class MessageService:
         chat_id: UUID,
         user_prompt: SendMessage,
         user_id: UUID,
-        background_tasks: BackgroundTasks,
     ):
         """
         Entry point: called whenever the user sends a new message.
@@ -117,18 +117,14 @@ class MessageService:
         chat = await self.chat_repository.get_one_chat(user_id, chat_id)
         history = await self.repository.get_all_messages(chat_id)
 
-        # Only keep the last 10 messages, so the prompt doesn't grow forever
         history = history[-10:]
         prompt_text = user_prompt.content
 
-        # If this is the first message in the chat, auto-generate a short title
         if not history:
             asyncio.create_task(self._update_title(chat_id, user_id, prompt_text))
 
         await self.repository.save_message(chat_id, Role.USER, prompt_text)
 
-        # We assemble the user history. The system prompt will be decided by the router
-        # inside _stream_response.
         messages = [{"role": m.role.value, "content": m.content} for m in history]
         messages.append({"role": "user", "content": prompt_text})
 

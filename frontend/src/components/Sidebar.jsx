@@ -25,9 +25,9 @@ function Sidebar({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-72 transform flex-col border-r border-slate-200/60 bg-[#fbfbfb] p-3 text-slate-900 shadow-2xl transition-transform duration-400 ease-out dark:border-white/5 dark:bg-[#121212] dark:text-slate-100 lg:static lg:translate-x-0 lg:shadow-none ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-72 transform flex-col border-r border-transparent bg-white p-3 text-slate-900 shadow-2xl transition-transform duration-400 ease-out glass dark:bg-[#121212]/90 dark:text-slate-100 lg:static lg:translate-x-0 lg:shadow-none ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        } before:absolute before:inset-y-0 before:-right-px before:w-px before:bg-gradient-to-b before:from-transparent before:via-violet-500/20 before:to-transparent`}
       >
         <div className="flex items-center justify-between px-2 py-1">
           <button
@@ -51,10 +51,10 @@ function Sidebar({
           type="button"
           onClick={onCreateChat}
           disabled={isActionLoading || isDashboardLoading}
-          className="group mt-5 flex items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-bold shadow-sm ring-1 ring-slate-200/60 transition-all duration-300 hover:shadow-md hover:ring-slate-300 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#1a1a1a] dark:ring-white/10 dark:hover:bg-[#222] dark:hover:ring-white/20"
+          className="group mt-5 flex items-center justify-between rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-3 text-sm font-bold text-white shadow-sm ring-1 ring-violet-500/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-md hover:shadow-violet-500/25 hover:ring-violet-400 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <span className="flex items-center gap-3">
-            <span className="grid h-6 w-6 place-items-center rounded-md bg-slate-100 text-lg transition-colors group-hover:bg-slate-200 dark:bg-white/5 dark:group-hover:bg-white/10">
+            <span className="grid h-6 w-6 place-items-center rounded-md bg-white/20 text-lg transition-colors group-hover:bg-white/30">
               {isActionLoading ? '…' : '＋'}
             </span>
             {isActionLoading ? 'Working...' : 'New chat'}
@@ -75,7 +75,7 @@ function Sidebar({
               key={chat.id}
               className={`group flex items-center gap-1 rounded-xl pr-1 transition-all duration-200 ${
                 activeChat?.id === chat.id
-                  ? 'bg-slate-200/50 font-semibold shadow-sm dark:bg-[#252525]'
+                  ? 'bg-violet-100 font-semibold shadow-sm dark:bg-violet-500/10 dark:ring-1 dark:ring-violet-500/20'
                   : 'hover:bg-slate-100 dark:hover:bg-white/5'
               }`}
             >
