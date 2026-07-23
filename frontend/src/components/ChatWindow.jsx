@@ -6,7 +6,23 @@ import MessageInput from './MessageInput'
 import ResearchStatus from './ResearchStatus'
 import WebEvidence from './WebEvidence'
 
-function ChatWindow({ activeChat, isActionLoading, isChatLoading, isLoading, message, messages, sendMessage, setMessage, stopMessage, enableSearch, setEnableSearch, onInputFocus }) {
+function ChatWindow({
+  activeChat,
+  isActionLoading,
+  isChatLoading,
+  isLoading,
+  message,
+  messages,
+  sendMessage,
+  setMessage,
+  stopMessage,
+  enableSearch,
+  setEnableSearch,
+  onInputFocus,
+  onFileUpload,
+  isUploadingFile,
+  activeDocument,
+}) {
   const messagesEndRef = useRef(null)
 
   useEffect(() => {
@@ -15,6 +31,18 @@ function ChatWindow({ activeChat, isActionLoading, isChatLoading, isLoading, mes
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white text-slate-950 dark:bg-[#212121] dark:text-white">
+      {activeDocument && (
+        <div className="flex items-center justify-between border-b border-indigo-100 bg-indigo-50/70 px-4 py-2 text-xs font-semibold text-indigo-900 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-200">
+          <div className="flex items-center gap-2">
+            <span>📄</span>
+            <span>Attached Document: <strong>{activeDocument.filename}</strong></span>
+          </div>
+          <span className="rounded bg-indigo-200/60 px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider text-indigo-800 dark:bg-indigo-500/30 dark:text-indigo-200">
+            Document Q&A Active
+          </span>
+        </div>
+      )}
+
       <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-4 py-8 sm:px-6">
           {isChatLoading ? (
@@ -33,9 +61,7 @@ function ChatWindow({ activeChat, isActionLoading, isChatLoading, isLoading, mes
                     How can I help you today?
                   </h1>
                   <p className="mt-4 max-w-xl text-lg leading-relaxed text-slate-500 dark:text-slate-400">
-                    Ask IronChat anything. You can use it to brainstorm ideas, write code, or analyze complex topics. 
-                    <br/><br/>
-                    <strong className="text-violet-600 dark:text-violet-400">Pro tip:</strong> Enable <span className="inline-flex items-center gap-1 rounded-md bg-fuchsia-50 px-2 py-0.5 text-xs font-semibold text-fuchsia-700 ring-1 ring-inset ring-fuchsia-700/10 dark:bg-fuchsia-400/10 dark:text-fuchsia-400 dark:ring-fuchsia-400/30">Web Research</span> below to search the internet for real-time news, live data, and up-to-date facts.
+                    Ask IronChat anything. Attach a PDF, DOCX, or TXT file using the paperclip button below to chat directly with your document!
                   </p>
                 </div>
               )}
@@ -76,10 +102,13 @@ function ChatWindow({ activeChat, isActionLoading, isChatLoading, isLoading, mes
         enableSearch={enableSearch}
         setEnableSearch={setEnableSearch}
         onFocus={onInputFocus}
+        onFileUpload={onFileUpload}
+        isUploadingFile={isUploadingFile}
       />
     </div>
   )
 }
+
 
 function ChatSkeleton() {
   return (

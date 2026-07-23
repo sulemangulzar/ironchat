@@ -1,3 +1,4 @@
+from app.services.file_upload import FileUploadService
 from app.services.message import MessageService
 from app.repositories.message import MessageRepository
 from app.services.chat import ChatService

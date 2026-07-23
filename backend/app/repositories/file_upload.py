@@ -26,6 +26,18 @@ class FileUploadRepository:
         result = await self.session.exec(statement)
         return list(result.all())
 
+    async def get_chat_documents(self, chat_id: UUID) -> List[Document]:
+        statement = select(Document).where(Document.chat_id == chat_id)
+        result = await self.session.exec(statement)
+        return list(result.all())
+
+    async def delete_documents_by_chat_id(self, chat_id: UUID) -> int:
+        docs = await self.get_chat_documents(chat_id)
+        for doc in docs:
+            await self.session.delete(doc)
+        await self.session.commit()
+        return len(docs)
+
     async def update_status(self, document_id: UUID, status: FileStatus) -> Optional[Document]:
         doc = await self.get_document_by_id(document_id)
         if doc:
@@ -34,3 +46,4 @@ class FileUploadRepository:
             await self.session.commit()
             await self.session.refresh(doc)
         return doc
+

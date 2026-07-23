@@ -37,3 +37,17 @@ async def get_my_documents(
     """
     documents = await service.repository.get_user_documents(current_user.id)
     return documents
+
+
+@router.get("/chat/{chat_id}", response_model=List[DocumentResponse])
+async def get_chat_documents(
+    chat_id: UUID,
+    current_user: CurrentUserDep = None,
+    service: FileUploadServiceDep = None,
+):
+    """
+    List documents attached to a specific chat session.
+    """
+    documents = await service.repository.get_chat_documents(chat_id)
+    return documents
+

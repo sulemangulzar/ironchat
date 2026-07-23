@@ -29,6 +29,9 @@ function Dashboard({
   setSidebarOpen,
   sidebarOpen,
   user,
+  onFileUpload,
+  isUploadingFile,
+  activeDocument,
 }) {
   return (
     <main className="flex h-screen overflow-hidden bg-slate-50 text-slate-950 dark:bg-[#0f0f11] dark:text-white">
@@ -66,10 +69,15 @@ function Dashboard({
               {isDashboardLoading ? (
                 <div className="h-5 w-32 animate-pulse rounded-full bg-slate-200 dark:bg-[#2f2f2f] sm:w-48" />
               ) : (
-                <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                <div className="flex flex-wrap min-w-0 items-center gap-2 sm:gap-3">
                   <h1 className="truncate text-base font-black tracking-tight text-slate-900 dark:text-white sm:text-lg">
                     {activeChat?.title || 'IronChat'}
                   </h1>
+                  {activeDocument && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-violet-800 dark:bg-violet-500/20 dark:text-violet-300">
+                      📄 {activeDocument.filename} (Doc Q&A)
+                    </span>
+                  )}
                   {activeChat && !isDashboardLoading && (
                     <div className="flex flex-none items-center gap-1 opacity-60 transition-opacity hover:opacity-100">
                       <button
@@ -145,10 +153,14 @@ function Dashboard({
           enableSearch={enableSearch}
           setEnableSearch={setEnableSearch}
           onInputFocus={onInputFocus}
+          onFileUpload={onFileUpload}
+          isUploadingFile={isUploadingFile}
+          activeDocument={activeDocument}
         />
       </section>
     </main>
   )
 }
+
 
 export default Dashboard

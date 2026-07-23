@@ -202,3 +202,21 @@ export async function sendChatMessage(chatId, content, enableSearch, onEvent, si
   }
 }
 
+export async function uploadChatDocument(file, chatId) {
+  const formData = new FormData()
+  formData.append('file', file)
+  if (chatId) {
+    formData.append('chat_id', chatId)
+  }
+
+  return request('/file/upload', {
+    method: 'POST',
+    body: formData,
+  })
+}
+
+export function getChatDocuments(chatId) {
+  return request(`/file/chat/${chatId}`)
+}
+
+

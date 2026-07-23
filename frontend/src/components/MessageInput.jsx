@@ -1,8 +1,19 @@
 import { useRef, useEffect } from 'react'
 
-function MessageInput({ activeChat, disabled, message, setMessage, sendMessage, isLoading, enableSearch, setEnableSearch, onFocus }) {
+function MessageInput({
+  activeChat,
+  disabled,
+  message,
+  setMessage,
+  sendMessage,
+  isLoading,
+  enableSearch,
+  setEnableSearch,
+  onFileUpload,
+  isUploadingFile,
+}) {
   const textareaRef = useRef(null)
-
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -11,12 +22,46 @@ function MessageInput({ activeChat, disabled, message, setMessage, sendMessage, 
     }
   }, [message])
 
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0]
+    if (file && onFileUpload) {
+      onFileUpload(file)
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
   return (
     <div className="bg-transparent px-4 pb-6 pt-3 sm:px-6">
       <div className="mx-auto max-w-3xl">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,.docx,.doc,.txt,.md"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+
         <div className="group relative flex flex-col rounded-[24px] border border-slate-200/80 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-300 focus-within:border-slate-300 focus-within:bg-white focus-within:shadow-[0_8px_30px_rgb(0,0,0,0.08)] animate-slide-up dark:border-white/10 dark:bg-[#1e1e1e]/60 dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] dark:focus-within:border-white/20 dark:focus-within:bg-[#222]">
           {/* Textarea row */}
           <div className="flex items-end gap-3 px-4 pt-3.5 pb-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={disabled || isLoading || isUploadingFile}
+              className="grid h-9 w-9 flex-none place-items-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+              title="Attach document (PDF, DOCX, TXT)"
+            >
+              {isUploadingFile ? (
+                <span className="h-4 w-4 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+              ) : (
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+              )}
+            </button>
+
             <textarea
               ref={textareaRef}
               value={message}
@@ -29,7 +74,7 @@ function MessageInput({ activeChat, disabled, message, setMessage, sendMessage, 
                 }
               }}
               disabled={disabled || isLoading}
-              placeholder={disabled ? 'Please wait...' : 'Message IronChat...'}
+              placeholder={disabled ? 'Please wait...' : 'Message IronChat or ask about your uploaded document...'}
               className="no-scrollbar max-h-[200px] min-h-[24px] w-full resize-none bg-transparent px-2 py-1 text-[15px] leading-relaxed text-slate-900 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed transition-[height] duration-200 ease-out dark:text-white"
             />
             <button
@@ -84,3 +129,4 @@ function MessageInput({ activeChat, disabled, message, setMessage, sendMessage, 
 }
 
 export default MessageInput
+

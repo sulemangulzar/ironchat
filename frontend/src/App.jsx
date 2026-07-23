@@ -24,7 +24,10 @@ import {
   sendChatMessage,
   signupUser,
   updateChatTitle,
+  uploadChatDocument,
+  getChatDocuments,
 } from './lib/api'
+
 import './App.css'
 
 const sortChatsDescending = (chatList) => {
@@ -107,7 +110,23 @@ function App() {
   const [toasts, setToasts] = useState([])
   const [chatAction, setChatAction] = useState(null)
   const [enableSearch, setEnableSearch] = useState(false)
+  const [isUploadingFile, setIsUploadingFile] = useState(false)
+  const [activeDocument, setActiveDocument] = useState(null)
   const abortControllerRef = useRef(null)
+
+  const fetchChatDoc = useCallback(async (chatId) => {
+    if (!chatId) {
+      setActiveDocument(null)
+      return
+    }
+    try {
+      const docs = await getChatDocuments(chatId)
+      setActiveDocument(docs && docs.length > 0 ? docs[docs.length - 1] : null)
+    } catch {
+      setActiveDocument(null)
+    }
+  }, [])
+
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark)
@@ -174,9 +193,13 @@ function App() {
         setActiveChat(selectedChat)
         saveActiveChatId(selectedChat.id)
 
-        const chatMessages = await getChatMessages(selectedChat.id)
+        const [chatMessages] = await Promise.all([
+          getChatMessages(selectedChat.id),
+          fetchChatDoc(selectedChat.id),
+        ])
         setMessages(formatChatMessages(chatMessages))
         return
+
       }
 
       const firstChat = await createChat()
@@ -257,7 +280,10 @@ function App() {
     setIsChatLoading(true)
 
     try {
-      const chatMessages = await getChatMessages(chat.id)
+      const [chatMessages] = await Promise.all([
+        getChatMessages(chat.id),
+        fetchChatDoc(chat.id),
+      ])
       setMessages(formatChatMessages(chatMessages))
     } catch (error) {
       const errorMessage = error.message || 'Could not load chat messages.'
@@ -271,6 +297,37 @@ function App() {
       setIsChatLoading(false)
     }
   }
+
+  const handleFileUpload = async (file) => {
+    if (!activeChat) return
+
+    setIsUploadingFile(true)
+    try {
+      const uploadedDoc = await uploadChatDocument(file, activeChat.id)
+      setActiveDocument(uploadedDoc)
+      showToast({
+        type: 'success',
+        title: 'Document Uploaded & Indexed',
+        message: `"${file.name}" is now attached to this chat session for Document Q&A!`,
+      })
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: `📄 **Document Attached**: \`${file.name}\`\n\nI have read and indexed your document! You can now ask any questions about it in this chat session.`,
+        },
+      ])
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'Upload Failed',
+        message: error.message || 'Could not upload document.',
+      })
+    } finally {
+      setIsUploadingFile(false)
+    }
+  }
+
 
   // Core chat creation logic — shared between button click and auto-create on focus
   const createNewChat = async () => {
@@ -549,7 +606,11 @@ function App() {
           setSidebarOpen={setSidebarOpen}
           sidebarOpen={sidebarOpen}
           user={user}
+          onFileUpload={handleFileUpload}
+          isUploadingFile={isUploadingFile}
+          activeDocument={activeDocument}
         />
+
         <ChatActionModal
           action={chatAction}
           isLoading={isActionLoading}

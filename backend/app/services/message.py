@@ -159,23 +159,36 @@ class MessageService:
             return {"results": []}
 
     # ============================================================
-    # NEW: RAG retrieval — mirrors _run_search() exactly, but for documents
+    # RAG retrieval — searches Qdrant for closest document chunks
     # ============================================================
-    async def _run_rag_retrieval(self, question: str, top_k: int = 3) -> list[str]:
+    async def _run_rag_retrieval(self, question: str, chat_id: UUID | None = None, top_k: int = 5) -> list[str]:
         """
         Embed the user's question, search Qdrant for the closest document
-        chunks, and return their raw text. Returns [] if nothing useful found.
+        chunks, filtered strictly to chat_id if provided.
         """
         try:
             question_vector = await asyncio.to_thread(embed_text, question)
 
+            query_filter = None
+            if chat_id:
+                from qdrant_client.models import Filter, FieldCondition, MatchValue
+                query_filter = Filter(
+                    must=[
+                        FieldCondition(
+                            key="chat_id",
+                            match=MatchValue(value=str(chat_id)),
+                        )
+                    ]
+                )
+
             results = await qdrant_client.query_points(
                 collection_name=RAG_COLLECTION_NAME,
                 query=question_vector,
+                query_filter=query_filter,
                 limit=top_k,
             )
 
-            chunks = [point.payload["text"] for point in results.points]
+            chunks = [point.payload["text"] for point in results.points if "text" in point.payload]
             return chunks
 
         except Exception as e:
@@ -189,7 +202,7 @@ class MessageService:
         enable_search: bool = False
     ):
         """
-        The main response generator with intelligent routing.
+        The main response generator with intelligent routing and chat-scoped Document Q&A.
         """
         def sse(data: dict) -> str:
             """Format a dict as a Server-Sent Event line."""
@@ -199,14 +212,33 @@ class MessageService:
         citations = []
 
         try:
+            # Check if this chat session has an uploaded document
+            has_chat_doc = False
+            try:
+                from app.core.database import get_session
+                from app.repositories.file_upload import FileUploadRepository
+                async for session in get_session():
+                    file_repo = FileUploadRepository(session)
+                    chat_docs = await file_repo.get_chat_documents(chat.id)
+                    has_chat_doc = len(chat_docs) > 0
+                    break
+            except Exception as e:
+                logging.error(f"Error checking chat documents: {e}")
+
             # 1. Routing phase
-            # By default, use simple chat instructions
             messages.insert(0, {"role": "system", "content": SYSTEM_PROMPT})
             
-            # Construct dynamic routing prompt based on whether Web Search is enabled
-            options_text = ""
-            if enable_search:
-                options_text = """1. Web Search Route (Current events, news, live prices, recent stats):
+            mode = "simple"
+            query = None
+
+            if has_chat_doc:
+                # If a document is attached to this chat, force Document Q&A mode
+                mode = "rag"
+            else:
+                # Construct dynamic routing prompt
+                options_text = ""
+                if enable_search:
+                    options_text = """1. Web Search Route (Current events, news, live prices, recent stats):
 {"mode": "search", "query": "standalone search query with context resolved (e.g. 'Elon Musk net worth' instead of 'his net worth')"}
 
 2. Documentation Route (Questions specifically about IronChat, its architecture, features, tech stack, or documentation):
@@ -214,14 +246,14 @@ class MessageService:
 
 3. Simple Chat Route (General knowledge, programming help, writing tasks, or conversational chat):
 {"mode": "simple"}"""
-            else:
-                options_text = """1. Documentation Route (Questions specifically about IronChat, its architecture, features, tech stack, or documentation):
+                else:
+                    options_text = """1. Documentation Route (Questions specifically about IronChat, its architecture, features, tech stack, or documentation):
 {"mode": "rag"}
 
 2. Simple Chat Route (General knowledge, programming help, writing tasks, or conversational chat):
 {"mode": "simple"}"""
 
-            dynamic_routing_prompt = f"""You are an intelligent routing assistant. Your job is to classify the user's LATEST message to determine how it should be answered.
+                dynamic_routing_prompt = f"""You are an intelligent routing assistant. Your job is to classify the user's LATEST message to determine how it should be answered.
 You will see the conversation history for context, but you must ONLY base your decision on the LATEST message.
 
 Reply with ONLY valid JSON — no explanation, no markdown, no extra text. Choose ONE of the following formats:
@@ -229,29 +261,27 @@ Reply with ONLY valid JSON — no explanation, no markdown, no extra text. Choos
 {options_text}
 """
 
-            decision_messages = [{"role": "system", "content": dynamic_routing_prompt}]
-            decision_messages += [m for m in messages if m["role"] != "system"]
+                decision_messages = [{"role": "system", "content": dynamic_routing_prompt}]
+                decision_messages += [m for m in messages if m["role"] != "system"]
 
-            decision_resp = await self.groq_client.chat.completions.create(
-                model=chat.model,
-                messages=decision_messages,
-                temperature=0,
-                max_tokens=64,
-                stream=False,
-            )
+                decision_resp = await self.groq_client.chat.completions.create(
+                    model=chat.model,
+                    messages=decision_messages,
+                    temperature=0,
+                    max_tokens=64,
+                    stream=False,
+                )
 
-            raw = decision_resp.choices[0].message.content or ""
-            mode = "simple"
-            query = None
+                raw = decision_resp.choices[0].message.content or ""
 
-            try:
-                clean = raw.strip().strip("```json").strip("```").strip()
-                decision = json.loads(clean)
-                mode = decision.get("mode", "simple")
-                if mode == "search" and decision.get("query"):
-                    query = decision["query"]
-            except Exception:
-                logging.warning(f"Could not parse routing decision JSON: {raw!r} — defaulting to simple")
+                try:
+                    clean = raw.strip().strip("```json").strip("```").strip()
+                    decision = json.loads(clean)
+                    mode = decision.get("mode", "simple")
+                    if mode == "search" and decision.get("query"):
+                        query = decision["query"]
+                except Exception:
+                    logging.warning(f"Could not parse routing decision JSON: {raw!r} — defaulting to simple")
 
             # 2. Execution phase based on route
             if mode == "search" and query:
@@ -284,18 +314,28 @@ Reply with ONLY valid JSON — no explanation, no markdown, no extra text. Choos
             elif mode == "rag":
                 latest_question = messages[-1]["content"]
 
-                yield sse({"type": "status", "status": "retrieving",
-                           "message": "Checking IronChat documentation"})
+                status_msg = "Reading uploaded document" if has_chat_doc else "Checking documentation"
+                yield sse({"type": "status", "status": "retrieving", "message": status_msg})
 
-                retrieved_chunks = await self._run_rag_retrieval(latest_question)
+                # If chat has an uploaded doc, filter Qdrant to this chat_id
+                target_chat_id = chat.id if has_chat_doc else None
+                retrieved_chunks = await self._run_rag_retrieval(latest_question, chat_id=target_chat_id)
 
                 if retrieved_chunks:
                     context_block = "\n\n[DOCUMENT CONTEXT]\n" + "\n---\n".join(retrieved_chunks)
 
-                    messages[0]["content"] = RAG_SYSTEM_PROMPT
+                    doc_system_prompt = """You are IronChat, an accurate AI assistant.
+
+You MUST answer the user's question strictly using ONLY the provided [DOCUMENT CONTEXT] from their uploaded file.
+- If the requested information is not in the document context, state: "I could not find that information in the uploaded document."
+- Do not invent details or use knowledge outside the provided document context.
+""" if has_chat_doc else RAG_SYSTEM_PROMPT
+
+                    messages[0]["content"] = doc_system_prompt
                     messages.append({"role": "user", "content": context_block})
                 else:
                     logging.info("RAG retrieval returned no chunks — answering without document context")
+
 
             # ---------- FINAL ANSWER (unchanged, just runs after whichever context was added) ----------
             final_stream = await self.groq_client.chat.completions.create(
