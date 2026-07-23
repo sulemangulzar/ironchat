@@ -453,6 +453,9 @@ function App() {
             } else if (event.type === 'error') {
               lastMsg.research.error = event.message
               lastMsg.research.status = 'error'
+              if (!lastMsg.content) {
+                lastMsg.content = `Error: ${event.message}`
+              }
             } else if (event.type === 'done') {
               lastMsg.research.status = 'done'
             }

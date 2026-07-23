@@ -67,3 +67,12 @@ def get_message_service(session : SessionDep):
     return MessageService(msg_repo, chat_repo)
 
 MessageServiceDep = Annotated[MessageService, Depends(get_message_service)]
+
+def get_file_upload_service(session: SessionDep):
+    from app.repositories.file_upload import FileUploadRepository
+    from app.services.file_upload import FileUploadService
+    repo = FileUploadRepository(session)
+    return FileUploadService(repo)
+
+FileUploadServiceDep = Annotated["FileUploadService", Depends(get_file_upload_service)]
+

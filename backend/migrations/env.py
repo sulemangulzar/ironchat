@@ -12,6 +12,7 @@ from app.models.message import Message
 from app.models.user import User
 from app.models.oauth_account import OAuthAccount
 from app.models.refresh_token import RefreshToken
+from app.models.file_uploads import Document
 
 
 # this is the Alembic Config object, which provides

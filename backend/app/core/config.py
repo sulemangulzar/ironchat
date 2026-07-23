@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     QDRANT_COLLECTION: str = "ironchat_docs"
 
     VOYAGE_API_KEY: str = ""
+    JINA_API_KEY: str = ""
+
 
     SUPABASE_REST_URL: str = ""
     SUPABASE_BUCKET: str = ""

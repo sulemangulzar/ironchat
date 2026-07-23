@@ -1,6 +1,6 @@
 import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from './storage'
 
-export const API_URL = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8001').replace(/\/$/, '')
+export const API_URL = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000').replace(/\/$/, '')
 
 // Ping the backend every 9 minutes to prevent Render free tier cold starts
 setInterval(() => {

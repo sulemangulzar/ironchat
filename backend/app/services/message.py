@@ -16,8 +16,9 @@ from app.schemas.message import SendMessage
 from app.api.v1.web_search import search_web
 
 
-from app.core.voyage import embed_text          
+from app.core.jina import embed_text          
 from app.core.qdrant import qdrant_client      
+
 
 RAG_COLLECTION_NAME = "ironchat_docs" 
 
@@ -108,6 +109,7 @@ class MessageService:
         chat_id: UUID,
         user_prompt: SendMessage,
         user_id: UUID,
+        background_tasks: BackgroundTasks | None = None,
     ):
         """
         Entry point: called whenever the user sends a new message.
@@ -332,4 +334,9 @@ Reply with ONLY valid JSON — no explanation, no markdown, no extra text. Choos
 
         except Exception as e:
             logging.error(f"Response generation error: {e}")
-            yield sse({"type": "error", "message": "Something went wrong. Please try again."})
+            err_str = str(e).lower()
+            if "invalid_api_key" in err_str or "401" in err_str or "authenticationerror" in err_str:
+                msg = "Invalid Groq API key (401 AuthenticationError). Please set a valid GROQ_API_KEY in backend/.env"
+            else:
+                msg = f"Response error: {e}"
+            yield sse({"type": "error", "message": msg})

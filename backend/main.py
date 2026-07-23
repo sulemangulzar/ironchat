@@ -9,21 +9,19 @@ from app.api.v1.chat import router as chat_router
 from app.api.v1.message import router as message_router
 from app.api.v1.oauth import router as oauth_router
 from app.api.v1.web_search import router as web_search_router
+from app.api.v1.file_uploads import router as file_upload_router
 from app.core.config import settings
 from app.core.database import engine
 
 
 def parse_allowed_origins(origins_str: str = "") -> list[str]:
-    origins = set()
+    origins = {"http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000", "http://127.0.0.1:3000"}
     for source in [origins_str, settings.ALLOWED_ORIGINS, settings.FRONTEND_URL]:
         if source:
             for origin in source.split(','):
                 cleaned = origin.strip().strip('"').strip("'").rstrip('/')
                 if cleaned:
                     origins.add(cleaned)
-    origins.add("http://localhost:5173")
-    origins.add("http://localhost:3000")
-    origins.add("https://ironchat-three.vercel.app")
     return list(origins)
 
 
@@ -51,15 +49,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=parse_allowed_origins(settings.ALLOWED_ORIGINS),
-    allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:\d+",
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     start_time = time.time()
@@ -68,11 +57,22 @@ async def add_process_time_header(request: Request, call_next):
     logger.info(f"Endpoint {request.method} {request.url.path} took {process_time:.4f} seconds")
     return response
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=parse_allowed_origins(settings.ALLOWED_ORIGINS),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(message_router)
 app.include_router(oauth_router)
 app.include_router(web_search_router)
+app.include_router(file_upload_router)
+
+
 
 
 @app.get("/")
