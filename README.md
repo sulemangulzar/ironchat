@@ -1,89 +1,142 @@
-# IronChat
+# ⚡ IronChat
 
-IronChat is a modern, responsive, and elegant AI chatbot application designed for quick questions, helpful answers, and smooth conversational flows. It leverages the raw speed of Llama-3 through Groq's APIs to provide real-time streaming answers.
+IronChat is a high-performance, intelligent AI Chatbot application featuring **LangChain-powered Document Q&A (RAG)**, **Jina AI Embeddings**, **Live Web Research**, and **Groq Llama-3 Acceleration**.
 
-## Features
+With IronChat, users can upload PDF, DOCX, or TXT documents directly to individual chat sessions for isolated, context-aware document Q&A, conduct web research using Tavily, or engage in ultra-fast general conversation.
 
-- **Blazing Fast AI Responses**: Powered by Llama-3 70b via Groq for near-instant inference.
-- **Intelligent Routing**: Features an advanced LLM-based router that automatically classifies queries, routing them to the internal knowledge base, web search, or standard chat based on context.
-- **Document QA (RAG)**: Seamlessly search internal documentation and PDF context using Voyage AI embeddings stored in a Qdrant vector database.
-- **Live Web Research**: Manually toggleable web search integration powered by Tavily, allowing the assistant to pull live news, facts, and events directly into the conversation.
-- **Premium UI/UX**: Built with Tailwind CSS v4, featuring a glassmorphic dashboard, responsive layout, dark/light mode toggles, and smooth micro-animations.
-- **Secure Authentication**: Built-in user sign up, login, and session management using JWT access and refresh tokens.
-- **Optimized Backend**: A robust FastAPI backend integrated with PostgreSQL (via Supabase), using advanced async SQLModel techniques and CTEs to minimize latency.
-- **Streaming Messages**: Messages are streamed to the frontend via Server-Sent Events (SSE) for a typewriter-like feel.
+---
 
-## Tech Stack
+## ✨ Key Features
+
+- ⚡ **Near-Instant LLM Inference**: Powered by Llama-3 (70B) via Groq's high-speed hardware acceleration for real-time streaming responses.
+- 📄 **LangChain & Jina AI Document Q&A (RAG)**:
+  - **Multi-Format Ingestion**: Supports `.pdf`, `.docx`, `.doc`, `.txt`, and `.md` file uploads.
+  - **LangChain Integration**: Uses LangChain document loaders (`PyPDFLoader`, `Docx2txtLoader`, `TextLoader`) and `RecursiveCharacterTextSplitter` for intelligent chunking.
+  - **Jina AI Embeddings**: Embedded using `jina-embeddings-v2-base-en` for deep semantic document search.
+  - **Chat-Scoped Q&A**: Each uploaded document is isolated strictly to its parent chat session via Qdrant vector payload filters.
+- 🌐 **Live Web Research**: Toggleable web research powered by Tavily for fetching real-time facts, current news, and live data with source citations.
+- 🗑️ **Automatic Cascading Cleanup**: Deleting a chat session automatically purges all attached document records in PostgreSQL and clears all vector points from Qdrant.
+- ☁️ **Resilient Storage Architecture**: Uploads files to Supabase Storage with automatic local filesystem fallbacks.
+- 🎨 **Modern Premium UI/UX**: Built with React, Tailwind CSS v4, glassmorphism aesthetics, dark/light mode toggles, document badges, and responsive layouts.
+- 🔐 **JWT Authentication**: Full user signup, login, password hashing, and access/refresh token rotation.
+
+---
+
+## 🛠️ Tech Stack
 
 ### Frontend
-- React (Vite)
-- Tailwind CSS v4
-- Standard custom React components (no external UI component libraries required)
-- `marked` & `DOMPurify` for rendering secure Markdown responses
+- **Framework**: React (Vite)
+- **Styling**: Tailwind CSS v4, Glassmorphism
+- **Markdown & Syntax**: `react-markdown` with `remark-gfm`
+- **Streaming**: Server-Sent Events (SSE)
 
 ### Backend
-- Python 3
-- FastAPI
-- SQLModel / SQLAlchemy (Asyncpg)
-- PostgreSQL (AWS/Supabase)
-- AsyncGroq API (Inference)
-- Voyage AI (Embeddings)
-- Qdrant (Vector Database)
-- Tavily (Web Search API)
+- **Framework**: Python 3.10+ & FastAPI
+- **Database & ORM**: PostgreSQL via SQLModel & Asyncpg (Alembic migrations)
+- **LLM Engine**: Groq API (Llama-3 70B)
+- **Document Processing**: LangChain (`langchain-community`, `PyPDFLoader`, `docx2txt`)
+- **Embeddings**: Jina AI Embeddings (`jina-embeddings-v2-base-en`)
+- **Vector Database**: Qdrant (`qdrant-client`)
+- **Web Search**: Tavily Search API
+- **File Storage**: Supabase Storage with local storage fallback
 
-## Getting Started
+---
 
-### Prerequisites
+## 🚀 Getting Started
 
-- Node.js (v18 or higher)
-- Python 3.10+
-- PostgreSQL database
-- API Keys: Groq, Voyage AI, Tavily, and a Qdrant Cluster URL
+### 1. Prerequisites
 
-### Installation
+Ensure you have the following installed/configured:
+- **Node.js**: v18+
+- **Python**: v3.10+
+- **PostgreSQL Database**: Local or hosted (e.g., Supabase / Neon / AWS RDS)
+- **API Keys**: Groq, Jina AI, Tavily, and Qdrant Cluster URL/Key
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/sulemangulzar/ironchat.git
-   cd ironchat
-   ```
+---
 
-2. **Setup the Backend**
-   ```bash
-   cd backend
-   python -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
-   ```
-   Create a `.env` file in the `backend` directory:
-   ```env
-   DATABASE_URL="postgresql+asyncpg://user:pass@host/db"
-   GROQ_API_KEY="your_groq_api_key"
-   JWT_SECRET_KEY="your_jwt_secret"
-   VOYAGE_API_KEY="your_voyage_api_key"
-   TAVILY_API_KEY="your_tavily_api_key"
-   QDRANT_URL="your_qdrant_cluster_url"
-   QDRANT_API_KEY="your_qdrant_api_key"
-   ```
-   Start the backend:
-   ```bash
-   uvicorn main:app --reload
-   ```
+### 2. Backend Setup
 
-3. **Setup the Frontend**
-   ```bash
-   cd ../frontend
-   npm install
-   ```
-   Create a `.env` file in the `frontend` directory:
-   ```env
-   VITE_API_URL="http://127.0.0.1:8000"
-   ```
-   Start the frontend:
-   ```bash
-   npm run dev
-   ```
+```bash
+cd backend
 
-## Contributing
+# Create and activate virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-Contributions are welcome. Feel free to open an issue or submit a pull request.
+# Install dependencies
+pip install -r requirements.txt
+
+# Run database migrations
+alembic upgrade head
+```
+
+Create a `.env` file inside the `backend/` directory:
+
+```env
+# Database & Auth
+DATABASE_URL="postgresql+asyncpg://postgres:password@localhost:5432/ironchat"
+JWT_SECRET_KEY="your_super_secret_jwt_key"
+ALLOWED_ORIGINS="http://localhost:5173,http://localhost:5174"
+
+# AI Services
+GROQ_API_KEY="gsk_..."
+JINA_API_KEY="jina_..."
+TAVILY_API_KEY="tvly-..."
+
+# Qdrant Vector Store
+QDRANT_URL="https://your-qdrant-cluster.qdrant.tech"
+QDRANT_API_KEY="your_qdrant_api_key"
+
+# Storage (Optional Supabase setup)
+SUPABASE_REST_URL="https://your-project.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="your_service_role_key"
+SUPABASE_BUCKET="documents"
+```
+
+Start the FastAPI backend:
+```bash
+uvicorn main:app --reload --port 8000
+```
+
+---
+
+### 3. Frontend Setup
+
+Open a new terminal window:
+
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+```
+
+Create a `.env` file inside the `frontend/` directory:
+
+```env
+VITE_API_URL="http://127.0.0.1:8000"
+```
+
+Start the Vite development server:
+```bash
+npm run dev
+```
+
+Visit `http://localhost:5173` (or `http://localhost:5174`) in your browser to launch IronChat!
+
+---
+
+## 📖 Usage Guide
+
+1. **Sign Up / Log In**: Create an account or sign in to your workspace.
+2. **Start a New Chat**: Click `+ New Chat` in the sidebar.
+3. **Upload a Document**: Click the paperclip icon (📎) in the message bar to attach a `.pdf`, `.docx`, or `.txt` document.
+4. **Chat with your Document**: Ask questions about the uploaded document—IronChat will retrieve exact context chunks using Jina embeddings and provide precise answers.
+5. **Web Research**: Click the **Web Research** toggle to allow IronChat to query live internet data.
+6. **Chat Cleanup**: Delete a chat to automatically clean up all messages, Postgres document records, and Qdrant vector points.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.

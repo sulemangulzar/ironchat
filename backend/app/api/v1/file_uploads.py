@@ -11,7 +11,7 @@ router = APIRouter(prefix="/file", tags=["File Uploads"])
 @router.post("/upload", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
 async def upload_file(
     file: UploadFile = File(...),
-    chat_id: Optional[UUID] = Form(None),
+    chat_id: Optional[str] = Form(None),
     current_user: CurrentUserDep = None,
     service: FileUploadServiceDep = None,
 ):
@@ -19,12 +19,20 @@ async def upload_file(
     Upload a document (PDF, DOCX, TXT, MD), store in Supabase storage,
     and index vector embeddings into Qdrant for RAG.
     """
+    parsed_chat_id = None
+    if chat_id and chat_id.strip():
+        try:
+            parsed_chat_id = UUID(chat_id.strip())
+        except ValueError:
+            parsed_chat_id = None
+
     document = await service.upload_and_process_document(
         file=file,
         user_id=current_user.id,
-        chat_id=chat_id,
+        chat_id=parsed_chat_id,
     )
     return document
+
 
 
 @router.get("/my-documents", response_model=List[DocumentResponse])

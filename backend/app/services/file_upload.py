@@ -87,10 +87,25 @@ class FileUploadService:
                 )
 
             if points:
+                # Ensure Qdrant collection exists
+                try:
+                    collections_res = await qdrant_client.get_collections()
+                    collection_names = [c.name for c in collections_res.collections]
+                    if COLLECTION_NAME not in collection_names:
+                        from qdrant_client.models import VectorParams, Distance
+                        vector_dim = len(points[0].vector)
+                        await qdrant_client.create_collection(
+                            collection_name=COLLECTION_NAME,
+                            vectors_config=VectorParams(size=vector_dim, distance=Distance.COSINE),
+                        )
+                except Exception as c_err:
+                    logging.warning(f"Qdrant collection check/create notice: {c_err}")
+
                 await qdrant_client.upsert(
                     collection_name=COLLECTION_NAME,
                     points=points,
                 )
+
 
             # 5. Update Status to INDEXED
             updated_doc = await self.repository.update_status(doc_id, FileStatus.INDEXED)
